@@ -9,22 +9,50 @@ Run the agent using IntelliJ IDEA or run through the built jar file:
 
 ```
 ./gradlew shadowJar
-java -jar build/libs/cirro-agent-0.1-all.jar --url=http://localhost:8080 --token=token
+java -jar build/libs/cirro-agent-0.1-all.jar
 ```
 
 You can also build & run through the native executable:
 
 ```
 ./gradlew nativeCompile
-./build/native/nativeCompile/cirro-agent --url=http://localhost:8080 --token=token
+./build/native/nativeCompile/cirro-agent
 ```
 
 Arguments:
 
-| Argument               | Environment Variable       | Description                                     |
-|------------------------|----------------------------|-------------------------------------------------|
-| `--id`                 | `AGENT_ID`                 | ID of the agent                                 |
-| `--url`                | `AGENT_SERVER_URL`         | URL of the server to connect to                 |
-| `--token`              | `AGENT_TOKEN`              | Bearer token for authentication                 |
-| `--heartbeat-interval` | `AGENT_HEARTBEAT_INTERVAL` | Interval in seconds to send heartbeat to server |
-| `--debug`              | `AGENT_DEBUG`              | Enable debug logging                            |
+## Configuration and Arguments
+
+The agent can be configured through the `agent-config.yml` file in the current working directory.
+You can specify a different configuration file by using the `CIRRO_AGENT_CONFIG` environment variable.
+
+The config file exposes the following options:
+
+```yml
+cirro:
+  agent:
+    url: https://app.cirro.bio/api
+    id: default-agent
+    heartbeat-interval: 30
+    watch-interval: 2
+    token: <API Token>
+    log-level: INFO
+    work-directory: work/
+```
+
+The following environment variables can be set to override the above configuration.
+We recommend setting `CIRRO_AGENT_TOKEN` to avoid putting secrets into a file.
+
+| Environment Variable           | Description                          |
+|--------------------------------|--------------------------------------|
+| CIRRO_AGENT_URL                | Path to the configuration file       |
+| CIRRO_AGENT_ID                 | Agent ID                             |
+| CIRRO_AGENT_HEARTBEAT_INTERVAL | Heartbeat interval in seconds        |
+| CIRRO_AGENT_WATCH_INTERVAL     | Watch interval in seconds            |
+| CIRRO_AGENT_TOKEN              | API token                            |
+| CIRRO_AGENT_LOG_LEVEL          | Log level (DEBUG, INFO, WARN, ERROR) |
+| CIRRO_AGENT_WORK_DIRECTORY     | Working directory for jobs           |
+
+### Debugging
+
+Debug mode can be enabled on the application by specifying the `--debug` flag on launch or setting log level to `DEBUG`.

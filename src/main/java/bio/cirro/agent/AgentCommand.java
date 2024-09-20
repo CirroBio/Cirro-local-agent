@@ -5,22 +5,24 @@ import bio.cirro.agent.dto.HeartbeatMessage;
 import bio.cirro.agent.exception.AgentException;
 import bio.cirro.agent.socket.AgentClient;
 import bio.cirro.agent.socket.AgentClientFactory;
-import bio.cirro.agent.socket.ConnectionInfo;
-import ch.qos.logback.classic.Level;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
+import io.micronaut.logging.LogLevel;
+import io.micronaut.logging.LoggingSystem;
 import io.micronaut.scheduling.TaskScheduler;
 import io.micronaut.websocket.exceptions.WebSocketClientException;
 import jakarta.inject.Singleton;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.time.Duration;
+import java.util.Optional;
 
 /**
  * Cirro Agent entry point.
@@ -37,22 +39,11 @@ public class AgentCommand implements Runnable {
     private final AgentClientFactory agentClientFactory;
     private final TaskScheduler taskScheduler;
     private final MessageHandler messageHandler;
-
-    // Command line options
-    @Option(names = {"-i", "--id"}, description = "Agent ID", defaultValue = "${env:AGENT_ID}", required = true)
-    String agentId;
-
-    @Option(names = {"-h", "--heartbeat-interval"}, description = "Heartbeat interval in seconds", defaultValue = "${env:AGENT_HEARTBEAT_INTERVAL:-60}", required = true)
-    int heartbeatInterval;
-
-    @Option(names = {"-url", "--url"}, description = "Server URL", defaultValue = "${env:AGENT_SERVER_URL}", required = true)
-    String url;
-
-    @Option(names = {"-t", "--token"}, description = "Agent token", defaultValue = "${env:AGENT_TOKEN}", required = true)
-    String token;
+    private final AgentConfig agentConfig;
+    private final LoggingSystem loggingSystem;
 
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging", defaultValue = "${env:AGENT_DEBUG:-false}")
-    boolean verbose;
+    boolean debugEnabled;
 
     // Internal state
     private AgentClient clientSocket;
@@ -69,10 +60,13 @@ public class AgentCommand implements Runnable {
      * in the main method, but this provides additional customization options.
      */
     private static int execute(String[] args) {
+        var configFile = Optional.ofNullable(System.getenv("CIRRO_AGENT_CONFIG"))
+                .orElse("./agent-config.yml");
+        System.setProperty("micronaut.config.files", configFile);
         try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).start()) {
-            CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context)).
-                    setCaseInsensitiveEnumValuesAllowed(true).
-                    setUsageHelpAutoWidth(true);
+            CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context))
+                    .setCaseInsensitiveEnumValuesAllowed(true)
+                    .setUsageHelpAutoWidth(true);
             // Print header with ANSI colors on all cases (not just help text)
             var header = new String[]{
                     "@|green  __     __   __   __ |@",
@@ -95,14 +89,12 @@ public class AgentCommand implements Runnable {
     @Override
     public void run() {
         try {
-            if (verbose) {
-                enableVerboseLogging();
-            }
+            setLogLevel();
             validateParams();
 
             // Schedule connection watcher and heartbeat tasks
-            var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofSeconds(2), this::watchAndInitConnection);
-            taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(heartbeatInterval), Duration.ofSeconds(heartbeatInterval), this::sendHeartbeat);
+            var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, agentConfig.watchInterval(), this::watchAndInitConnection);
+            taskScheduler.scheduleAtFixedRate(agentConfig.heartbeatInterval(), agentConfig.heartbeatInterval(), this::sendHeartbeat);
 
             // Wait for the watcher task to complete (it only completes when an exception is thrown)
             watcher.get();
@@ -125,12 +117,8 @@ public class AgentCommand implements Runnable {
     private void watchAndInitConnection() {
         try {
             if (clientSocket == null || !clientSocket.isOpen()) {
-                var connectionInfo = ConnectionInfo.builder()
-                        .url(url)
-                        .token(token)
-                        .build();
-                clientSocket = agentClientFactory.connect(connectionInfo, messageHandler::handleMessage);
-                clientSocket.sendMessage(new AgentRegisterMessage(agentId));
+                clientSocket = agentClientFactory.connect(agentConfig.getConnectionInfo(), messageHandler::handleMessage);
+                clientSocket.sendMessage(new AgentRegisterMessage(agentConfig.getId()));
             }
         } catch (WebSocketClientException e) {
             log.error(e.getMessage());
@@ -150,17 +138,26 @@ public class AgentCommand implements Runnable {
      * Validate required parameters
      */
     private void validateParams() {
-        if (url == null || url.isBlank()) {
+        if (agentConfig.getUrl() == null || agentConfig.getUrl().isBlank()) {
             throw new AgentException("URL is required");
+        }
+
+        try {
+            var workDirectory = agentConfig.getWorkDirectory();
+            if (!Files.isDirectory(workDirectory)) {
+                throw new AgentException("Working directory does not exist: " + workDirectory);
+            }
+            log.info("Using working directory: {}", workDirectory.toAbsolutePath());
+        } catch (InvalidPathException e) {
+            throw new AgentException("Working directory invalid: " + agentConfig.getWorkDirectory());
         }
     }
 
     /**
-     * Sets log level to DEBUG for the {@link bio.cirro.agent} package
+     * Changes the log level for the {@link bio.cirro.agent} package
      */
-    private void enableVerboseLogging() {
-        log.info("Enabling verbose logging");
-        var agentLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(AgentCommand.class.getPackageName());
-        agentLogger.setLevel(Level.DEBUG);
+    private void setLogLevel() {
+        var logLevel = debugEnabled ? LogLevel.DEBUG : LogLevel.valueOf(agentConfig.getLogLevel());
+        loggingSystem.setLogLevel(AgentCommand.class.getPackageName(), logLevel);
     }
 }

@@ -1,0 +1,9 @@
+cirro:
+  agent:
+    url: https://app.cirro.bio/api
+    id: default-agent
+    heartbeat-interval: 30
+    watch-interval: 2
+    token: ${CIRRO_AGENT_TOKEN:}
+    log-level: INFO
+    work-directory: work/

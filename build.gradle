@@ -13,17 +13,20 @@ repositories {
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor("info.picocli:picocli-codegen")
-    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
-    implementation("info.picocli:picocli")
-    implementation("io.micronaut.picocli:micronaut-picocli")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    annotationProcessor "info.picocli:picocli-codegen"
+    annotationProcessor "io.micronaut.serde:micronaut-serde-processor"
     annotationProcessor "io.micronaut.validation:micronaut-validation-processor"
+
+    implementation "info.picocli:picocli"
+    implementation "io.micronaut.picocli:micronaut-picocli"
+    implementation "io.micronaut.serde:micronaut-serde-jackson"
     implementation "io.micronaut.validation:micronaut-validation"
-    implementation "ch.qos.logback:logback-classic"
     implementation "io.micronaut:micronaut-http-client"
     implementation 'io.micronaut:micronaut-websocket'
     implementation "io.micronaut.reactor:micronaut-reactor"
+
+    runtimeOnly "ch.qos.logback:logback-classic"
+    runtimeOnly "org.yaml:snakeyaml"
 
     testCompileOnly 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
