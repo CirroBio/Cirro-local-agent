@@ -1,7 +1,6 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.micronaut.application") version "4.4.2"
-    id("com.diffplug.spotless") version "6.23.3"
 }
 
 version = "0.1"
@@ -12,37 +11,46 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor("info.picocli:picocli-codegen")
     annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
     implementation("info.picocli:picocli")
     implementation("io.micronaut.picocli:micronaut-picocli")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
-    runtimeOnly("ch.qos.logback:logback-classic")
-}
+    annotationProcessor "io.micronaut.validation:micronaut-validation-processor"
+    implementation "io.micronaut.validation:micronaut-validation"
+    implementation "ch.qos.logback:logback-classic"
+    implementation "io.micronaut:micronaut-http-client"
+    implementation 'io.micronaut:micronaut-websocket'
+    implementation "io.micronaut.reactor:micronaut-reactor"
 
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+}
 
 application {
-    mainClass = "bio.cirro.DefaultCommand"
+    mainClass = "bio.cirro.agent.AgentCommand"
 }
+
 java {
-    sourceCompatibility = JavaVersion.toVersion("17")
-    targetCompatibility = JavaVersion.toVersion("17")
+    sourceCompatibility = JavaVersion.toVersion("21")
+    targetCompatibility = JavaVersion.toVersion("21")
 }
-
-
 
 micronaut {
     testRuntime("junit5")
     processing {
         incremental(true)
-        annotations("example.micronaut.*")
+        annotations("bio.cirro.*")
     }
 }
 
-
-spotless {
-    java {
-        licenseHeaderFile(file("LICENSEHEADER"))
+graalvmNative {
+    binaries {
+        main {
+            imageName.set('cirro-agent')
+            buildArgs.add('--verbose')
+        }
     }
 }
-
