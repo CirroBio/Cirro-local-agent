@@ -2,6 +2,7 @@ package bio.cirro.agent;
 
 import bio.cirro.agent.socket.ConnectionInfo;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,6 +21,15 @@ public class AgentConfig {
     private int watchInterval;
     private String logLevel;
     private String workDirectory;
+    private String scriptsDirectory;
+    private Path absoluteWorkDirectory;
+    private Path absoluteScriptsDirectory;
+
+    @PostConstruct
+    public void init() {
+        this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
+        this.absoluteScriptsDirectory = getAbsolutePath(scriptsDirectory);
+    }
 
     public ConnectionInfo getConnectionInfo() {
         return ConnectionInfo.builder()
@@ -36,8 +46,11 @@ public class AgentConfig {
         return Duration.ofSeconds(heartbeatInterval);
     }
 
-    public Path getWorkDirectory() {
-        var expandedPath = workDirectory.replaceFirst("^~", System.getProperty("user.home"));
+    private Path getAbsolutePath(String directory) {
+        if (directory == null) {
+            return null;
+        }
+        var expandedPath = directory.replaceFirst("^~", System.getProperty("user.home"));
         return Paths.get(expandedPath).toAbsolutePath();
     }
 }

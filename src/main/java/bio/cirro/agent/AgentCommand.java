@@ -143,11 +143,11 @@ public class AgentCommand implements Runnable {
         }
 
         try {
-            var workDirectory = agentConfig.getWorkDirectory();
+            var workDirectory = agentConfig.getAbsoluteWorkDirectory();
             if (!Files.isDirectory(workDirectory)) {
                 throw new AgentException("Working directory does not exist: " + workDirectory);
             }
-            log.info("Using working directory: {}", workDirectory.toAbsolutePath());
+            log.info("Using working directory: {}", workDirectory);
         } catch (InvalidPathException e) {
             throw new AgentException("Working directory invalid: " + agentConfig.getWorkDirectory());
         }

@@ -33,11 +33,12 @@ cirro:
   agent:
     url: https://app.cirro.bio/api
     id: default-agent
+    token: <API Token>
+    work-directory: work/
+    # Advanced options
     heartbeat-interval: 30
     watch-interval: 2
-    token: <API Token>
     log-level: INFO
-    work-directory: work/
 ```
 
 The following environment variables can be set to override the above configuration.
