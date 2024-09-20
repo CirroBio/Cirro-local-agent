@@ -63,14 +63,17 @@ public class AgentCommand implements Runnable {
     }
 
     /**
-     * Set up the Application Context and command line
-     * (this method initializes the picocli command line parser)
+     * Set up the Application Context and command line.
+     * <p>
+     * This is not technically required as one can just use PicocliRunner
+     * in the main method, but this provides additional customization options.
      */
     private static int execute(String[] args) {
         try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).start()) {
             CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context)).
                     setCaseInsensitiveEnumValuesAllowed(true).
                     setUsageHelpAutoWidth(true);
+            // Print header with ANSI colors on all cases (not just help text)
             var header = new String[]{
                     "@|green  __     __   __   __ |@",
                     "@|green /  ` | |__) |__) /  \\|@",
