@@ -8,10 +8,9 @@ import io.micronaut.websocket.CloseReason;
 import io.micronaut.websocket.WebSocketSession;
 import io.micronaut.websocket.annotation.ClientWebSocket;
 import io.micronaut.websocket.annotation.OnClose;
-import io.micronaut.websocket.annotation.OnError;
 import io.micronaut.websocket.annotation.OnMessage;
 import io.micronaut.websocket.annotation.OnOpen;
-import jakarta.inject.Inject;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,11 +23,12 @@ import java.util.Optional;
  */
 @ClientWebSocket
 @Slf4j
+@RequiredArgsConstructor
 public abstract class AgentClient implements AutoCloseable {
-    private WebSocketSession session;
+    // Injected dependencies
+    private final ObjectMapper objectMapper;
 
-    @Inject
-    ObjectMapper objectMapper;
+    private WebSocketSession session;
 
     @Setter
     private MessageHandlerFunction messageHandler;
@@ -59,11 +59,6 @@ public abstract class AgentClient implements AutoCloseable {
         response.ifPresent(this::sendMessage);
     }
 
-    @OnError
-    public void onError(Throwable error) {
-        log.error("Error", error);
-    }
-
     public void sendMessage(PortalMessage message) {
         try {
             var json = objectMapper.writeValueAsString(message);
@@ -73,6 +68,9 @@ public abstract class AgentClient implements AutoCloseable {
         }
     }
 
+    /**
+     * Is the WebSocket connection open?
+     */
     public boolean isOpen() {
         return session.isOpen();
     }

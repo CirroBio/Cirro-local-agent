@@ -2,6 +2,7 @@ package bio.cirro.agent;
 
 import bio.cirro.agent.dto.AgentRegisterMessage;
 import bio.cirro.agent.dto.HeartbeatMessage;
+import bio.cirro.agent.exception.AgentException;
 import bio.cirro.agent.socket.AgentClient;
 import bio.cirro.agent.socket.AgentClientFactory;
 import bio.cirro.agent.socket.ConnectionInfo;
@@ -10,8 +11,9 @@ import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
 import io.micronaut.scheduling.TaskScheduler;
-import jakarta.inject.Inject;
+import io.micronaut.websocket.exceptions.WebSocketClientException;
 import jakarta.inject.Singleton;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -19,7 +21,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.time.Duration;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Cirro Agent entry point.
@@ -30,8 +31,14 @@ import java.util.concurrent.CountDownLatch;
 )
 @Singleton
 @Slf4j
+@RequiredArgsConstructor
 public class AgentCommand implements Runnable {
+    // Injected dependencies
+    private final AgentClientFactory agentClientFactory;
+    private final TaskScheduler taskScheduler;
+    private final MessageHandler messageHandler;
 
+    // Command line options
     @Option(names = {"-i", "--id"}, description = "Agent ID", defaultValue = "${env:AGENT_ID}", required = true)
     String agentId;
 
@@ -47,22 +54,18 @@ public class AgentCommand implements Runnable {
     @Option(names = {"-d", "--debug"}, description = "Enable debug logging", defaultValue = "${env:AGENT_DEBUG:-false}")
     boolean verbose;
 
-    AgentClient clientSocket;
-
-    @Inject
-    AgentClientFactory agentClientFactory;
-
-    @Inject
-    TaskScheduler taskScheduler;
-
-    @Inject
-    MessageHandler messageHandler;
+    // Internal state
+    private AgentClient clientSocket;
 
     public static void main(String[] args) {
         int exitCode = execute(args);
         System.exit(exitCode);
     }
 
+    /**
+     * Set up the Application Context and command line
+     * (this method initializes the picocli command line parser)
+     */
     private static int execute(String[] args) {
         try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).start()) {
             CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context)).
@@ -82,6 +85,10 @@ public class AgentCommand implements Runnable {
         }
     }
 
+    /**
+     * Main agent loop
+     * Gets called once the CLI framework is done (i.e., after parsing the command line arguments).
+     */
     @Override
     public void run() {
         try {
@@ -90,27 +97,29 @@ public class AgentCommand implements Runnable {
             }
             validateParams();
 
-            // Schedule connection and heartbeat tasks
-            taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofSeconds(2), this::watchConnection);
+            // Schedule connection watcher and heartbeat tasks
+            var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, Duration.ofSeconds(2), this::watchAndInitConnection);
             taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(heartbeatInterval), Duration.ofSeconds(heartbeatInterval), this::sendHeartbeat);
 
-            // Wait forever
-            CountDownLatch latch = new CountDownLatch(1);
-                latch.await();
+            // Wait for the watcher task to complete (it only completes when an exception is thrown)
+            watcher.get();
         } catch (InterruptedException e) {
-            log.error("Interrupted", e);
             Thread.currentThread().interrupt();
-        } catch (IllegalArgumentException e) {
-            log.error(e.getMessage());
+            log.error("Interrupted", e);
+            System.exit(1);
+        } catch (AgentException e) {
+            log.error("Error: {}", e.getMessage());
             System.exit(1);
         } catch (Exception e) {
-            log.error("Error", e);
+            log.error("Unexpected error", e);
             System.exit(1);
         }
     }
 
-    // Setup connection to server and reconnect if disconnected
-    private void watchConnection() {
+    /**
+     * Initialize the connection to the server if it is not already open
+     */
+    private void watchAndInitConnection() {
         try {
             if (clientSocket == null || !clientSocket.isOpen()) {
                 var connectionInfo = ConnectionInfo.builder()
@@ -120,26 +129,32 @@ public class AgentCommand implements Runnable {
                 clientSocket = agentClientFactory.connect(connectionInfo, messageHandler::handleMessage);
                 clientSocket.sendMessage(new AgentRegisterMessage(agentId));
             }
-        } catch (Exception e) {
-            log.error("Error connecting to server", e);
-            throw new RuntimeException(e);
+        } catch (WebSocketClientException e) {
+            log.error(e.getMessage());
         }
     }
 
-    // Send heartbeat to keep connection alive
+    /**
+     * Send a heartbeat message to the server to avoid disconnection
+     */
     private void sendHeartbeat() {
         if (clientSocket != null && clientSocket.isOpen()) {
             clientSocket.sendMessage(new HeartbeatMessage());
         }
     }
 
-    // Validate required parameters
+    /**
+     * Validate required parameters
+     */
     private void validateParams() {
         if (url == null || url.isBlank()) {
-            throw new IllegalArgumentException("URL is required");
+            throw new AgentException("URL is required");
         }
     }
 
+    /**
+     * Sets log level to DEBUG for the {@link bio.cirro.agent} package
+     */
     private void enableVerboseLogging() {
         log.info("Enabling verbose logging");
         var agentLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(AgentCommand.class.getPackageName());

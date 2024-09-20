@@ -9,6 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
+/**
+ * Handles messages received by the agent
+ * and returns a response message if applicable.
+ */
 @Singleton
 @Slf4j
 public class MessageHandler {
@@ -31,7 +35,6 @@ public class MessageHandler {
         log.info("{}", runAnalysisCommandMessage);
         return RunAnalysisResponseMessage.builder()
                 .output("Analysis complete")
-                .exitStatus(0)
                 .datasetId(runAnalysisCommandMessage.getDatasetId())
                 .build();
     }

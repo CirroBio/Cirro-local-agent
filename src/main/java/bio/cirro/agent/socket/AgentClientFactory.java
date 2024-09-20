@@ -7,9 +7,12 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.websocket.WebSocketClient;
 import reactor.core.publisher.Flux;
 
+/**
+ * Sets up a WebSocket client for the agent to connect to the Cirro Portal.
+ */
 @Bean
 public class AgentClientFactory {
-    WebSocketClient webSocketClient;
+    private final WebSocketClient webSocketClient;
 
     public AgentClientFactory(ApplicationContext applicationContext) {
         this.webSocketClient = applicationContext.getBean(WebSocketClient.class);

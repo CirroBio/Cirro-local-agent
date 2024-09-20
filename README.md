@@ -15,7 +15,7 @@ java -jar build/libs/cirro-agent-0.1-all.jar --url=http://localhost:8080 --token
 You can also build & run through the native executable:
 
 ```
-./gradlew nativeImage
+./gradlew nativeCompile
 ./build/native/nativeCompile/cirro-agent --url=http://localhost:8080 --token=token
 ```
 
