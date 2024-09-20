@@ -28,7 +28,7 @@ public abstract class AgentClient implements AutoCloseable {
     private WebSocketSession session;
 
     @Inject
-    private ObjectMapper objectMapper;
+    ObjectMapper objectMapper;
 
     @Setter
     private MessageHandlerFunction messageHandler;
