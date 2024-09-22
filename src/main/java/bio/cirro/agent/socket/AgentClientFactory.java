@@ -1,31 +1,31 @@
 package bio.cirro.agent.socket;
 
 import bio.cirro.agent.MessageHandlerFunction;
-import io.micronaut.context.ApplicationContext;
+import bio.cirro.agent.utils.AWSRequestSigner;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.websocket.WebSocketClient;
+import lombok.AllArgsConstructor;
 import reactor.core.publisher.Flux;
 
 /**
  * Sets up a WebSocket client for the agent to connect to the Cirro Portal.
  */
 @Bean
+@AllArgsConstructor
 public class AgentClientFactory {
     private final WebSocketClient webSocketClient;
-
-    public AgentClientFactory(ApplicationContext applicationContext) {
-        this.webSocketClient = applicationContext.getBean(WebSocketClient.class);
-    }
+    private final AWSRequestSigner awsRequestSigner;
 
     public AgentClient connect(ConnectionInfo connectionInfo,
                                MessageHandlerFunction messageHandler) {
         var request = HttpRequest
                 .GET(connectionInfo.url())
-                .header("User-Agent", "Cirro Agent")
-                .bearerAuth(connectionInfo.token());
+                .body("")
+                .header("User-Agent", "Cirro Agent");
 
-        var client = webSocketClient.connect(AgentClient.class, request);
+        var signedRequest = awsRequestSigner.signRequest(request);
+        var client = webSocketClient.connect(AgentClient.class, signedRequest);
         var clientBlocking = Flux.from(client).blockFirst();
 
         assert clientBlocking != null;
