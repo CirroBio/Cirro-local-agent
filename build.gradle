@@ -1,6 +1,8 @@
 plugins {
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "4.4.2"
+    id "jacoco"
+    id "org.sonarqube" version "4.2.1.3168"
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "io.micronaut.application" version "4.4.2"
 }
 
 version = "0.1"
@@ -8,6 +10,19 @@ group = "bio.cirro"
 
 repositories {
     mavenCentral()
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = false
+        csv.required = false
+    }
+}
+
+test {
+    useJUnitPlatform()
 }
 
 dependencies {
@@ -24,12 +39,17 @@ dependencies {
     implementation "io.micronaut:micronaut-http-client"
     implementation 'io.micronaut:micronaut-websocket'
     implementation "io.micronaut.reactor:micronaut-reactor"
+    implementation "software.amazon.awssdk:http-auth-aws:2.28.6"
+    implementation "software.amazon.awssdk:auth:2.28.6"
 
     runtimeOnly "ch.qos.logback:logback-classic"
     runtimeOnly "org.yaml:snakeyaml"
 
     testCompileOnly 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation "org.mockito:mockito-core:3.+"
 }
 
 application {
@@ -55,5 +75,14 @@ graalvmNative {
             imageName.set('cirro-agent')
             buildArgs.add('--verbose')
         }
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "CirroBio_Cirro-local-agent"
+        property "sonar.organization", "cirrobio"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.java.coveragePlugin", "jacoco"
     }
 }

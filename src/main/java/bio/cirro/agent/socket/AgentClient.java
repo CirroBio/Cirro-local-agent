@@ -48,7 +48,7 @@ public abstract class AgentClient implements AutoCloseable {
 
     @OnMessage
     public void onMessage(String message) {
-        log.debug("Received message: {}", message);
+        log.debug("Received message raw: {}", message);
         PortalMessage portalMessage;
         try {
             portalMessage = objectMapper.readValue(message, PortalMessage.class);
@@ -62,6 +62,7 @@ public abstract class AgentClient implements AutoCloseable {
     public void sendMessage(PortalMessage message) {
         try {
             var json = objectMapper.writeValueAsString(message);
+            log.debug("Sending message raw: {}", json);
             session.sendSync(json);
         } catch (IOException e) {
             log.error("Failed to serialize message", e);

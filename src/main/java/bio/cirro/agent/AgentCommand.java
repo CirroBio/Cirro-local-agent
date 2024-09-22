@@ -159,5 +159,6 @@ public class AgentCommand implements Runnable {
     private void setLogLevel() {
         var logLevel = debugEnabled ? LogLevel.DEBUG : LogLevel.valueOf(agentConfig.getLogLevel());
         loggingSystem.setLogLevel(AgentCommand.class.getPackageName(), logLevel);
+        log.debug("Setting log level to {}", logLevel);
     }
 }

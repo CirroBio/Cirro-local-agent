@@ -1,0 +1,3 @@
+cirro:
+  agent:
+    work-directory: /tmp
