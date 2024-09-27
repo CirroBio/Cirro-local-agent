@@ -20,7 +20,7 @@ public class AgentClientFactory {
     public AgentClient connect(ConnectionInfo connectionInfo,
                                MessageHandlerFunction messageHandler) {
         var request = HttpRequest
-                .GET(connectionInfo.url())
+                .GET(connectionInfo.url() + "?agentId=" + connectionInfo.agentId())
                 .body("")
                 .header("User-Agent", "Cirro Agent");
 

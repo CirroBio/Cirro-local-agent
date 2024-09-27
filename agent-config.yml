@@ -1,6 +1,6 @@
 cirro:
   agent:
-    url: http://localhost:8080/ws/chat/agent/agent
-    agent-id: nathan-agent
+    url: https://whylc8wsjl.execute-api.us-west-2.amazonaws.com/ws
+    id: default-agent
     log-level: DEBUG
     work-directory: ~/cirro-agent-work

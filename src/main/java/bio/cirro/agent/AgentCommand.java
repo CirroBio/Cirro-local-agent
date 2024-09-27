@@ -5,6 +5,7 @@ import bio.cirro.agent.dto.HeartbeatMessage;
 import bio.cirro.agent.exception.AgentException;
 import bio.cirro.agent.socket.AgentClient;
 import bio.cirro.agent.socket.AgentClientFactory;
+import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
@@ -63,7 +64,7 @@ public class AgentCommand implements Runnable {
         var configFile = Optional.ofNullable(System.getenv("CIRRO_AGENT_CONFIG"))
                 .orElse("./agent-config.yml");
         System.setProperty("micronaut.config.files", configFile);
-        try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).start()) {
+        try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).banner(false).start()) {
             CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context))
                     .setCaseInsensitiveEnumValuesAllowed(true)
                     .setUsageHelpAutoWidth(true);
@@ -118,7 +119,12 @@ public class AgentCommand implements Runnable {
         try {
             if (clientSocket == null || !clientSocket.isOpen()) {
                 clientSocket = agentClientFactory.connect(agentConfig.getConnectionInfo(), messageHandler::handleMessage);
-                clientSocket.sendMessage(new AgentRegisterMessage(agentConfig.getId()));
+                clientSocket.sendMessage(AgentRegisterMessage.builder()
+                        .agentId(agentConfig.getId())
+                        .os(SystemUtils.getOs())
+                        .localIp(SystemUtils.getLocalIp())
+                        .hostname(SystemUtils.getHostname())
+                        .build());
             }
         } catch (WebSocketClientException e) {
             log.error(e.getMessage());

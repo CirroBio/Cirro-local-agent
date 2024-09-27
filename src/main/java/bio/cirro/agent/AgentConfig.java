@@ -34,7 +34,7 @@ public class AgentConfig {
     public ConnectionInfo getConnectionInfo() {
         return ConnectionInfo.builder()
                 .url(url)
-                .token(token)
+                .agentId(id)
                 .build();
     }
 
