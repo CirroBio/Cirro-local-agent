@@ -3,12 +3,17 @@ package bio.cirro.agent;
 import bio.cirro.agent.dto.AgentRegisterMessage;
 import bio.cirro.agent.dto.HeartbeatMessage;
 import bio.cirro.agent.exception.AgentException;
+import bio.cirro.agent.models.SystemInfoResponse;
 import bio.cirro.agent.socket.AgentClient;
 import bio.cirro.agent.socket.AgentClientFactory;
+import bio.cirro.agent.socket.ConnectionInfo;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.client.HttpClient;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
 import io.micronaut.scheduling.TaskScheduler;
@@ -38,6 +43,7 @@ import java.util.Optional;
 public class AgentCommand implements Runnable {
     // Injected dependencies
     private final AgentClientFactory agentClientFactory;
+    private final HttpClient httpClient;
     private final TaskScheduler taskScheduler;
     private final MessageHandler messageHandler;
     private final AgentConfig agentConfig;
@@ -48,6 +54,7 @@ public class AgentCommand implements Runnable {
 
     // Internal state
     private AgentClient clientSocket;
+    private SystemInfoResponse systemInfo;
 
     public static void main(String[] args) {
         int exitCode = execute(args);
@@ -92,6 +99,7 @@ public class AgentCommand implements Runnable {
         try {
             setLogLevel();
             validateParams();
+            systemInfo = connectCirro();
 
             // Schedule connection watcher and heartbeat tasks
             var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, agentConfig.watchInterval(), this::watchAndInitConnection);
@@ -118,15 +126,30 @@ public class AgentCommand implements Runnable {
     private void watchAndInitConnection() {
         try {
             if (clientSocket == null || !clientSocket.isOpen()) {
-                clientSocket = agentClientFactory.connect(agentConfig.getConnectionInfo(), messageHandler::handleMessage);
-                clientSocket.sendMessage(AgentRegisterMessage.builder()
+                var connectionInfo = ConnectionInfo.builder()
+                        .url(systemInfo.agentEndpoint())
+                        .region(systemInfo.region())
                         .agentId(agentConfig.getId())
-                        .os(SystemUtils.getOs())
-                        .localIp(SystemUtils.getLocalIp())
-                        .hostname(SystemUtils.getHostname())
-                        .build());
+                        .userAgent(agentConfig.getUserAgent())
+                        .build();
+                clientSocket = agentClientFactory.connect(connectionInfo, messageHandler::handleMessage);
+                clientSocket.sendMessage(
+                        AgentRegisterMessage.builder()
+                                .agentId(agentConfig.getId())
+                                .os(SystemUtils.getOs())
+                                .localIp(SystemUtils.getLocalIp())
+                                .hostname(SystemUtils.getHostname())
+                                .build()
+                );
             }
         } catch (WebSocketClientException e) {
+            var msg = e.getMessage();
+            if (msg.contains(HttpStatus.BAD_REQUEST.getReason())) {
+                throw new AgentException("Bad Request: invalid connection info, check agent ID");
+            }
+            if (msg.contains(HttpStatus.UNAUTHORIZED.getReason())) {
+                throw new AgentException("Unauthorized: check that the role has access");
+            }
             log.error(e.getMessage());
         }
     }
@@ -157,6 +180,19 @@ public class AgentCommand implements Runnable {
         } catch (InvalidPathException e) {
             throw new AgentException("Working directory invalid: " + agentConfig.getWorkDirectory());
         }
+    }
+
+    private SystemInfoResponse connectCirro() {
+        var url = agentConfig.getUrl() + "/api/info/system";
+        log.debug("Connecting to Cirro at {}", url);
+        var request = HttpRequest.GET(url)
+                .header("User-Agent", agentConfig.getUserAgent())
+                .accept("application/json");
+        var response = httpClient.toBlocking().retrieve(request, SystemInfoResponse.class);
+        if (response.agentEndpoint() == null || response.agentEndpoint().isBlank()) {
+            throw new AgentException("Invalid Cirro server response");
+        }
+        return response;
     }
 
     /**

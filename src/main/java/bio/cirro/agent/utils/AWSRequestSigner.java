@@ -23,7 +23,9 @@ import java.util.concurrent.ExecutionException;
 @Singleton
 @Slf4j
 public class AWSRequestSigner {
-    public MutableHttpRequest<String> signRequest(MutableHttpRequest<String> request) {
+    private static final String SERVICE_NAME = "execute-api";
+
+    public MutableHttpRequest<String> signRequest(MutableHttpRequest<String> request, String region) {
         try (var credentialsProvider = DefaultCredentialsProvider.create()) {
             var identity = credentialsProvider.resolveIdentity().get();
             log.debug("Signing request with identity: {}", identity.accessKeyId());
@@ -40,8 +42,8 @@ public class AWSRequestSigner {
                     r.identity(identity)
                             .request(sdkHttpRequest)
                             .payload(body == null ? null : ContentStreamProvider.fromUtf8String(body))
-                            .putProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, "execute-api")
-                            .putProperty(AwsV4HttpSigner.REGION_NAME, "us-west-2"))
+                            .putProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME)
+                            .putProperty(AwsV4HttpSigner.REGION_NAME, region))
                     .request();
             // Convert back to Micronaut request object
             return HttpRequest.create(request.getMethod(), request.getUri().toString())

@@ -1,6 +1,6 @@
 cirro:
   agent:
-    url: https://whylc8wsjl.execute-api.us-west-2.amazonaws.com/ws
+    url: https://dev.cirro.bio
     id: default-agent
     log-level: DEBUG
     work-directory: ~/cirro-agent-work

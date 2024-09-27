@@ -7,3 +7,4 @@ cirro:
     token: ${CIRRO_AGENT_TOKEN:}
     log-level: INFO
     work-directory: work/
+    version: 0.1.0

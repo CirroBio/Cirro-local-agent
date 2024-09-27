@@ -22,11 +22,12 @@ public class AgentClientFactory {
         var request = HttpRequest
                 .GET(connectionInfo.url() + "?agentId=" + connectionInfo.agentId())
                 .body("")
-                .header("User-Agent", "Cirro Agent");
+                .header("User-Agent", connectionInfo.userAgent());
 
-        var signedRequest = awsRequestSigner.signRequest(request);
+        var signedRequest = awsRequestSigner.signRequest(request, connectionInfo.region());
         var client = webSocketClient.connect(AgentClient.class, signedRequest);
-        var clientBlocking = Flux.from(client).blockFirst();
+        var clientBlocking = Flux.from(client)
+                .blockFirst();
 
         assert clientBlocking != null;
         clientBlocking.setMessageHandler(messageHandler);
