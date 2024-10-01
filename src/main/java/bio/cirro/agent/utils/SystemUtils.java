@@ -4,8 +4,17 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class SystemUtils {
+
+    private SystemUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static String getOs() {
-        return String.format("%s %s", System.getProperty("os.name"), System.getProperty("os.version"));
+        return String.format("%s %s %s", System.getProperty("os.name"), System.getProperty("os.arch"), System.getProperty("os.version"));
+    }
+
+    public static String getJavaVersion() {
+        return String.format("%s (%s %s)", System.getProperty("java.runtime.name"), System.getProperty("java.vendor"), System.getProperty("java.vendor.version"));
     }
 
     public static String getHostname() {

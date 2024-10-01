@@ -17,5 +17,6 @@ public class AgentRegisterMessage extends PortalMessage {
     String agentId;
     String localIp;
     String hostname;
+    String agentVersion;
     String os;
 }

@@ -25,7 +25,7 @@ class AWSRequestSignerTest {
         var request = HttpRequest
                 .GET("http://localhost:8080")
                 .body("");
-        var signedRequest = awsRequestSigner.signRequest(request);
+        var signedRequest = awsRequestSigner.signRequest(request, "us-west-2");
         var headers = signedRequest.getHeaders();
         Assertions.assertTrue(headers.contains("X-Amz-Date"));
         Assertions.assertTrue(headers.contains("Authorization"));
@@ -42,6 +42,6 @@ class AWSRequestSignerTest {
         var request = HttpRequest
                 .GET("http://localhost:8080")
                 .body("");
-        Assertions.assertThrows(AgentException.class, () -> awsRequestSigner.signRequest(request));
+        Assertions.assertThrows(AgentException.class, () -> awsRequestSigner.signRequest(request, "us-west-2"));
     }
 }

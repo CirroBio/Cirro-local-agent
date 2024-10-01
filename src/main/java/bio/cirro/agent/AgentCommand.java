@@ -27,6 +27,7 @@ import picocli.CommandLine.Option;
 
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -70,7 +71,9 @@ public class AgentCommand implements Runnable {
     private static int execute(String[] args) {
         var configFile = Optional.ofNullable(System.getenv("CIRRO_AGENT_CONFIG"))
                 .orElse("./agent-config.yml");
-        System.setProperty("micronaut.config.files", configFile);
+        if (Files.exists(Paths.get(configFile))) {
+            System.setProperty("micronaut.config.files", configFile);
+        }
         try (ApplicationContext context = ApplicationContext.builder(AgentCommand.class, Environment.CLI).banner(false).start()) {
             CommandLine cmd = new CommandLine(AgentCommand.class, new MicronautFactory(context))
                     .setCaseInsensitiveEnumValuesAllowed(true)
@@ -133,10 +136,12 @@ public class AgentCommand implements Runnable {
                         .userAgent(agentConfig.getUserAgent())
                         .build();
                 clientSocket = agentClientFactory.connect(connectionInfo, messageHandler::handleMessage);
+                var versionString = String.format("Cirro Agent (%s) on %s", agentConfig.getVersion(), SystemUtils.getJavaVersion());
                 clientSocket.sendMessage(
                         AgentRegisterMessage.builder()
                                 .agentId(agentConfig.getId())
                                 .os(SystemUtils.getOs())
+                                .agentVersion(versionString)
                                 .localIp(SystemUtils.getLocalIp())
                                 .hostname(SystemUtils.getHostname())
                                 .build()

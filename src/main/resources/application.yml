@@ -1,6 +1,6 @@
 cirro:
   agent:
-    url: https://app.cirro.bio/api
+    url: https://app.cirro.bio
     id: default-agent
     heartbeat-interval: 60
     watch-interval: 2
