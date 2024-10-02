@@ -16,6 +16,7 @@ import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
+import io.micronaut.runtime.Micronaut;
 import io.micronaut.scheduling.TaskScheduler;
 import io.micronaut.websocket.exceptions.WebSocketClientException;
 import jakarta.inject.Singleton;
@@ -108,6 +109,7 @@ public class AgentCommand implements Runnable {
             var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, agentConfig.watchInterval(), this::watchAndInitConnection);
             taskScheduler.scheduleAtFixedRate(agentConfig.heartbeatInterval(), agentConfig.heartbeatInterval(), this::sendHeartbeat);
 
+            Micronaut.run(AgentCommand.class);
             // Wait for the watcher task to complete (it only completes when an exception is thrown)
             watcher.get();
         } catch (InterruptedException e) {

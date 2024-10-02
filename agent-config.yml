@@ -4,3 +4,4 @@ cirro:
     id: default-agent
     log-level: DEBUG
     work-directory: ~/cirro-agent-work
+    watch-interval: 10
