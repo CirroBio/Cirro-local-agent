@@ -43,6 +43,7 @@ dependencies {
     implementation "software.amazon.awssdk:auth:${awsSdkVersion}"
     implementation "software.amazon.awssdk:sts:${awsSdkVersion}"
     implementation "software.amazon.awssdk:sso:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:s3:${awsSdkVersion}"
     implementation "software.amazon.awssdk:ssooidc:${awsSdkVersion}"
     implementation "software.amazon.awssdk:iam-policy-builder:${awsSdkVersion}"
 

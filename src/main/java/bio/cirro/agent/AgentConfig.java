@@ -24,6 +24,7 @@ public class AgentConfig {
     private Path absoluteWorkDirectory;
     private Path absoluteScriptsDirectory;
     private String version;
+    private String fileAccessRoleArn;
 
     @PostConstruct
     public void init() {
