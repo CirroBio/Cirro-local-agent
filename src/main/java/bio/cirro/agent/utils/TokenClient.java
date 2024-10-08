@@ -7,6 +7,8 @@ import io.micronaut.context.annotation.Bean;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
+import software.amazon.awssdk.policybuilder.iam.IamEffect;
 import software.amazon.awssdk.policybuilder.iam.IamPolicy;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -36,7 +38,7 @@ public class TokenClient {
     }
 
     public AWSCredentials generateCredentialsForExecutionSession(ExecutionSession executionSession) {
-        var roleSessionName = String.format("%s-%s", agentId, executionSession.username());
+        var roleSessionName = String.format("%s-%s", agentId, executionSession.getUsername());
         var sessionPolicy = createPolicyForExecutionSession(executionSession);
         var token = stsClient.assumeRole(
                 r -> r.roleArn(roleArn)
@@ -57,7 +59,7 @@ public class TokenClient {
     private IamPolicy createPolicyForExecutionSession(ExecutionSession executionSession) {
         var datasetS3Path = executionSession.datasetS3Path();
         var bucketArn = Arn.builder()
-                .partition(Optional.ofNullable(executionSession.projectAccount().partition()).orElse("aws"))
+                .partition(Optional.ofNullable(executionSession.getProjectAccount().partition()).orElse("aws"))
                 .service(S3Client.SERVICE_NAME)
                 .resource(datasetS3Path.getBucket())
                 .build()
@@ -66,36 +68,36 @@ public class TokenClient {
         return IamPolicy.builder()
                 .addStatement(b -> b
                         .sid("AllowListBucket")
-                        .effect("Allow")
+                        .effect(IamEffect.ALLOW)
                         .addAction("s3:ListBucket")
                         .addAction("s3:GetBucketLocation")
                         .addResource(bucketArn)
                 )
                 .addStatement(b -> b
                         .sid("AllowWriteToDataset")
-                        .effect("Allow")
+                        .effect(IamEffect.ALLOW)
                         .addAction("s3:PutObject")
                         .addAction("s3:DeleteObject")
                         .addResource(String.format("%s/%s/*", bucketArn, datasetS3Path.getKey()))
                 )
                 .addStatement(b -> b
                         .sid("AllowReadFromProject")
-                        .effect("Allow")
+                        .effect(IamEffect.ALLOW)
                         .addAction("s3:GetObject*")
                         .addResource(String.format("%s/*", bucketArn))
                 )
                 .addStatement(b -> b
                         .sid("AllowReadCrossAccount")
-                        .effect("Allow")
+                        .effect(IamEffect.ALLOW)
                         .addAction("s3:GetObject*")
                         .addAction("s3:PutObject")
                         .addAction("s3:ListBucket")
                         .addAction("s3:GetBucketLocation")
                         .addResource("*")
                         .addCondition(c -> c
-                                .operator("StringNotEquals")
+                                .operator(IamConditionOperator.STRING_NOT_EQUALS)
                                 .key("aws:ResourceAccount")
-                                .value(executionSession.projectAccount().accountId())
+                                .value(executionSession.getProjectAccount().accountId())
                         )
                 )
                 .build();
