@@ -7,12 +7,7 @@ import bio.cirro.agent.utils.TokenClient;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 @Singleton
 @AllArgsConstructor
@@ -26,8 +21,6 @@ public class ExecutionService {
         var session = ExecutionSession.builder()
                 .sessionId(sessionId)
                 .datasetId(runAnalysisCommandMessage.getDatasetId())
-                .projectId(runAnalysisCommandMessage.getProjectId())
-                .datasetS3(runAnalysisCommandMessage.getDatasetPath())
                 .build();
         executionRepository.add(session);
         return session;

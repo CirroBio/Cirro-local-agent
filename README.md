@@ -33,7 +33,6 @@ cirro:
   agent:
     url: https://app.cirro.bio/api
     id: default-agent
-    token: <API Token>
     work-directory: work/
     # Advanced options
     heartbeat-interval: 30
@@ -42,7 +41,6 @@ cirro:
 ```
 
 The following environment variables can be set to override the above configuration.
-We recommend setting `CIRRO_AGENT_TOKEN` to avoid putting secrets into a file.
 
 | Environment Variable           | Description                          |
 |--------------------------------|--------------------------------------|
@@ -50,7 +48,6 @@ We recommend setting `CIRRO_AGENT_TOKEN` to avoid putting secrets into a file.
 | CIRRO_AGENT_ID                 | Agent ID                             |
 | CIRRO_AGENT_HEARTBEAT_INTERVAL | Heartbeat interval in seconds        |
 | CIRRO_AGENT_WATCH_INTERVAL     | Watch interval in seconds            |
-| CIRRO_AGENT_TOKEN              | API token                            |
 | CIRRO_AGENT_LOG_LEVEL          | Log level (DEBUG, INFO, WARN, ERROR) |
 | CIRRO_AGENT_WORK_DIRECTORY     | Working directory for jobs           |
 
