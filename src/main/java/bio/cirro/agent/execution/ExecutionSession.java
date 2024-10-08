@@ -20,7 +20,7 @@ public class ExecutionSession {
     private final String username;
     private final String datasetS3;
     private final CloudAccount projectAccount;
-    private String localJobId;
+    private ExecutionSessionOutput output;
 
     public S3Path datasetS3Path() {
         return S3Path.parse(datasetS3);

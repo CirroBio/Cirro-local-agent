@@ -19,24 +19,37 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Singleton
 @AllArgsConstructor
 @Slf4j
 public class ExecutionService {
+    private final static String JOB_ID_REGEX = ".*Job ID: (\\d+).*";
     private final AgentConfig agentConfig;
     private final TokenClient tokenClient;
     private final ExecutionRepository executionRepository;
 
     public ExecutionSession createSession(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         var sessionId = UUID.randomUUID().toString();
+        var workingDirectory = Paths.get(agentConfig.getAbsoluteWorkDirectory().toString(), sessionId);
         var session = ExecutionSession.builder()
                 .sessionId(sessionId)
                 .datasetId(runAnalysisCommandMessage.getDatasetId())
                 .projectId(runAnalysisCommandMessage.getProjectId())
                 .datasetS3(runAnalysisCommandMessage.getDatasetPath())
+                .workingDirectory(workingDirectory)
                 .build();
         executionRepository.add(session);
+
+        writeParams(session);
+        writeConfig(session);
+        writeEnvironment(session);
+        writeAWSConfig(session);
+
+        var executionOutput = startExecution(session);
+        session.setOutput(executionOutput);
+
         return session;
     }
 
@@ -100,7 +113,7 @@ public class ExecutionService {
         }
     }
 
-    private String startExecution(ExecutionSession session) {
+    private ExecutionSessionOutput startExecution(ExecutionSession session) {
         try {
             // Headnode launch script
             // pass working directory, user-provided
@@ -138,7 +151,13 @@ public class ExecutionService {
             }
             process.destroy();
             log.debug("Execution output: {}", processOutput);
-            return processOutput;
+
+            String jobId = null;
+            var matcher = Pattern.compile(JOB_ID_REGEX).matcher(processOutput);
+            if (matcher.find()) {
+                jobId = matcher.group(1);
+            }
+            return new ExecutionSessionOutput(jobId, processOutput);
         } catch (IOException e) {
             throw new ExecutionException(e.getMessage());
         } catch (InterruptedException e) {
