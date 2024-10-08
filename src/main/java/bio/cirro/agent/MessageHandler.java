@@ -4,6 +4,9 @@ import bio.cirro.agent.dto.PortalMessage;
 import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.dto.RunAnalysisResponseMessage;
 import bio.cirro.agent.dto.UnknownMessage;
+import bio.cirro.agent.exception.ExecutionException;
+import bio.cirro.agent.execution.ExecutionService;
+import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +19,8 @@ import java.util.Optional;
 @Singleton
 @Slf4j
 public class MessageHandler {
+    private ExecutionService executionSessionService;
+
     public Optional<PortalMessage> handleMessage(PortalMessage message) {
         return switch (message) {
             case RunAnalysisCommandMessage runAnalysisCommandMessage ->
@@ -32,10 +37,21 @@ public class MessageHandler {
     }
 
     private RunAnalysisResponseMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
-        log.info("{}", runAnalysisCommandMessage);
-        return RunAnalysisResponseMessage.builder()
-                .output("Analysis complete")
-                .datasetId(runAnalysisCommandMessage.getDatasetId())
-                .build();
+        try {
+            var execution = executionSessionService.createSession(runAnalysisCommandMessage);
+            return RunAnalysisResponseMessage.builder()
+                    .output(execution.getSessionId())
+                    .status(Status.PENDING)
+                    .datasetId(runAnalysisCommandMessage.getDatasetId())
+                    .build();
+        } catch (ExecutionException e) {
+            var message = String.format("Error running analysis: %s", e.getMessage());
+            log.error(message, e);
+            return RunAnalysisResponseMessage.builder()
+                    .output(e.getMessage())
+                    .status(Status.FAILED)
+                    .datasetId(runAnalysisCommandMessage.getDatasetId())
+                    .build();
+        }
     }
 }
