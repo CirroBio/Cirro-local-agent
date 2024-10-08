@@ -39,11 +39,13 @@ dependencies {
     implementation "io.micronaut:micronaut-http-client"
     implementation 'io.micronaut:micronaut-websocket'
     implementation "io.micronaut.reactor:micronaut-reactor"
-    implementation "software.amazon.awssdk:http-auth-aws:2.28.6"
-    implementation "software.amazon.awssdk:auth:2.28.6"
-    implementation "software.amazon.awssdk:sts:2.28.6"
-    implementation "software.amazon.awssdk:sso:2.28.6"
-    implementation "software.amazon.awssdk:ssooidc:2.28.6"
+    implementation "software.amazon.awssdk:http-auth-aws:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:auth:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:sts:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:sso:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:s3:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:ssooidc:${awsSdkVersion}"
+    implementation "software.amazon.awssdk:iam-policy-builder:${awsSdkVersion}"
 
     runtimeOnly "ch.qos.logback:logback-classic"
     runtimeOnly "org.yaml:snakeyaml"

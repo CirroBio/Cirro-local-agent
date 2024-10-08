@@ -6,6 +6,7 @@ import io.micronaut.context.annotation.Bean;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.websocket.WebSocketClient;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import reactor.core.publisher.Flux;
 
 /**
@@ -17,7 +18,10 @@ public class AgentClientFactory {
     private final WebSocketClient webSocketClient;
     private final AWSRequestSigner awsRequestSigner;
 
-    public AgentClient connect(ConnectionInfo connectionInfo,
+    @Getter
+    private AgentClient clientSocket;
+
+    public synchronized AgentClient connect(ConnectionInfo connectionInfo,
                                MessageHandlerFunction messageHandler) {
         var request = HttpRequest
                 .GET(connectionInfo.url() + "?agentId=" + connectionInfo.agentId())
@@ -25,12 +29,12 @@ public class AgentClientFactory {
                 .header("User-Agent", connectionInfo.userAgent());
 
         var signedRequest = awsRequestSigner.signRequest(request, connectionInfo.region());
-        var client = webSocketClient.connect(AgentClient.class, signedRequest);
-        var clientBlocking = Flux.from(client)
+        var clientAsync = webSocketClient.connect(AgentClient.class, signedRequest);
+        var client = Flux.from(clientAsync)
                 .blockFirst();
 
-        assert clientBlocking != null;
-        clientBlocking.setMessageHandler(messageHandler);
-        return clientBlocking;
+        assert client != null;
+        client.setMessageHandler(messageHandler);
+        return client;
     }
 }
