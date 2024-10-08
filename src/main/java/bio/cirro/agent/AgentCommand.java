@@ -4,7 +4,6 @@ import bio.cirro.agent.dto.AgentRegisterMessage;
 import bio.cirro.agent.dto.HeartbeatMessage;
 import bio.cirro.agent.exception.AgentException;
 import bio.cirro.agent.models.SystemInfoResponse;
-import bio.cirro.agent.socket.AgentClient;
 import bio.cirro.agent.socket.AgentClientFactory;
 import bio.cirro.agent.socket.ConnectionInfo;
 import bio.cirro.agent.utils.SystemUtils;
@@ -55,7 +54,6 @@ public class AgentCommand implements Runnable {
     boolean debugEnabled;
 
     // Internal state
-    private AgentClient clientSocket;
     private SystemInfoResponse systemInfo;
 
     public static void main(String[] args) {
@@ -130,6 +128,7 @@ public class AgentCommand implements Runnable {
      */
     private void watchAndInitConnection() {
         try {
+            var clientSocket = agentClientFactory.getClientSocket();
             if (clientSocket == null || !clientSocket.isOpen()) {
                 var connectionInfo = ConnectionInfo.builder()
                         .url(systemInfo.agentEndpoint())
@@ -165,6 +164,7 @@ public class AgentCommand implements Runnable {
      * Send a heartbeat message to the server to avoid disconnection
      */
     private void sendHeartbeat() {
+        var clientSocket = agentClientFactory.getClientSocket();
         if (clientSocket != null && clientSocket.isOpen()) {
             clientSocket.sendMessage(new HeartbeatMessage());
         }

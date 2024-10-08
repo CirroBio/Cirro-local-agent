@@ -1,9 +1,9 @@
 package bio.cirro.agent.utils;
 
 import bio.cirro.agent.AgentConfig;
+import bio.cirro.agent.execution.ExecutionSession;
 import bio.cirro.agent.models.AWSCredentials;
-import bio.cirro.agent.models.ExecutionSession;
-import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Bean;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.arns.Arn;
@@ -22,7 +22,7 @@ public class TokenClient {
     private final String roleArn;
     private final String agentId;
 
-    @Factory
+    @Bean
     public static TokenClient create(AgentConfig agentConfig) {
         return new TokenClient(
                 StsClient.create(),

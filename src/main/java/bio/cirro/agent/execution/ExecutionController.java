@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 @Controller("/executions/{executionId}")
 @AllArgsConstructor
 public class ExecutionController {
-    private final ExecutionSessionService executionSessionService;
+    private final ExecutionService executionSessionService;
 
     @Post("/s3-token")
     public HttpResponse<AWSCredentials> generateExecutionS3Credentials(@PathVariable String executionId) {
