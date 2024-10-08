@@ -4,6 +4,7 @@ import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.models.AWSCredentials;
+import bio.cirro.agent.utils.FileUtils;
 import bio.cirro.agent.utils.TokenClient;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
@@ -51,7 +52,8 @@ public class ExecutionService {
     }
 
     private void writeParams(ExecutionSession session) {
-
+        // Fetch params from S3
+        // Write to file in local working directory
     }
 
     private void writeConfig(ExecutionSession session) {
@@ -64,14 +66,14 @@ public class ExecutionService {
                 Map.entry("DATASET_ID", session.getDatasetId())
         );
 
-        StringBuilder environmentFileString = new StringBuilder();
+        var environmentSb = new StringBuilder();
         for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {
-            environmentFileString.append(String.format("export %s=%s%n", entry.getKey(), entry.getValue()));
+            environmentSb.append(String.format("export %s=%s%n", entry.getKey(), entry.getValue()));
         }
 
-        var environmentFilePath = Paths.get(session.getWorkingDirectory().toString(), "environment.sh");
+        var environmentFile = Paths.get(session.getWorkingDirectory().toString(), "environment.sh");
         try {
-            Files.writeString(environmentFilePath, environmentFileString.toString());
+            FileUtils.writeScript(environmentFile, environmentSb.toString());
         } catch (IOException e) {
             throw new ExecutionException("Failed to write environment file", e);
         }
@@ -79,7 +81,23 @@ public class ExecutionService {
 
     private void writeAWSConfig(ExecutionSession session) {
         // Write AWS config file
-        // Write credentials-helper.sh
+        var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
+        awsConfigTemplate = awsConfigTemplate.replace("%%SESSION_ID%%", session.getSessionId());
+        var awsConfigPath = Paths.get(session.getWorkingDirectory().toString(), ".aws-config");
+        try {
+            Files.writeString(awsConfigPath, awsConfigTemplate);
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to write AWS config", e);
+        }
+
+        // Write credential helper
+        var credentialHelperScript = FileUtils.getResourceAsString("credential-helper.sh");
+        var credentialHelperPath = Paths.get(session.getWorkingDirectory().toString(), "credential-helper.sh");
+        try {
+            FileUtils.writeScript(credentialHelperPath, credentialHelperScript);
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to write credential helper", e);
+        }
     }
 
     private String startExecution(ExecutionSession session) {
@@ -118,6 +136,7 @@ public class ExecutionService {
             if (process.exitValue() != 0) {
                 throw new ExecutionException("Execution failed: " + processOutput);
             }
+            process.destroy();
             log.debug("Execution output: {}", processOutput);
             return processOutput;
         } catch (IOException e) {
