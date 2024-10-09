@@ -24,6 +24,6 @@ sbatch \
     --account="${HEADNODE_ACCOUNTING}" \
     --extra="${HEADNODE_LABEL}" \
     --partition="${HEADNODE_PARTITION}" \
-    --cpus-per-task=${HEADNODE_CPUS} \
-    --mem="${HEADNODE_MEM}" \
-    --priority="${HEADNODE_PRIORITY}"
+    --cpus-per-task=${HEADNODE_CPUS:-4} \
+    --mem="${HEADNODE_MEM:-4G}" \
+    --priority="${HEADNODE_PRIORITY:-10}"
