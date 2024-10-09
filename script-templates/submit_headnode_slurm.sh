@@ -9,6 +9,7 @@ set -euo pipefail
 # - PROCESS_DIR: The directory which will be used for the headnode execution (absolute path)
 # - PROCESS_GUID: The unique identifier for the process
 # - HEADNODE_ACCOUNTING: The accounting string to use for the headnode job
+# - HEADNODE_LABEL: A more readable label to use for the headnode job
 # - HEADNODE_PARTITION: The partition to use for the headnode job
 # - HEADNODE_CPUS: The number of CPUs to use for the headnode job
 # - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 4G)
@@ -21,6 +22,7 @@ sbatch \
     --output="${PROCESS_DIR}/process.out" \
     --job-name="${PROCESS_GUID}" \
     --account="${HEADNODE_ACCOUNTING}" \
+    --extra="${HEADNODE_LABEL}" \
     --partition="${HEADNODE_PARTITION}" \
     --cpus-per-task=${HEADNODE_CPUS} \
     --mem="${HEADNODE_MEM}" \
