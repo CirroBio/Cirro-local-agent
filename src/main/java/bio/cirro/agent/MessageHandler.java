@@ -8,6 +8,7 @@ import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.execution.ExecutionService;
 import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
@@ -18,8 +19,9 @@ import java.util.Optional;
  */
 @Singleton
 @Slf4j
+@AllArgsConstructor
 public class MessageHandler {
-    private ExecutionService executionSessionService;
+    private final ExecutionService executionService;
 
     public Optional<PortalMessage> handleMessage(PortalMessage message) {
         return switch (message) {
@@ -38,9 +40,10 @@ public class MessageHandler {
 
     private RunAnalysisResponseMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         try {
-            var execution = executionSessionService.createSession(runAnalysisCommandMessage);
+            var execution = executionService.createSession(runAnalysisCommandMessage);
             return RunAnalysisResponseMessage.builder()
-                    .output(execution.getSessionId())
+                    .output(execution.getOutput().stdout())
+                    .nativeJobId(execution.getOutput().localJobId())
                     .status(Status.PENDING)
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
                     .build();

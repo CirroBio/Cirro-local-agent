@@ -3,9 +3,11 @@ package bio.cirro.agent.utils;
 import lombok.Getter;
 
 import java.net.URI;
+import java.nio.file.Paths;
 
 @Getter
 public class S3Path {
+
     private final String bucket;
     private final String key;
 
@@ -16,6 +18,10 @@ public class S3Path {
 
     public String toString() {
         return String.format("s3://%s/%s", bucket, key);
+    }
+
+    public S3Path resolve(String key) {
+        return new S3Path(bucket, Paths.get(this.key, key).toString());
     }
 
     public static S3Path parse(String s3Path) {

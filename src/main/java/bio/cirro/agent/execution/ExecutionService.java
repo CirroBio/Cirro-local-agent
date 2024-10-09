@@ -1,11 +1,12 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
+import bio.cirro.agent.client.FileClient;
+import bio.cirro.agent.client.TokenClient;
 import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.models.AWSCredentials;
 import bio.cirro.agent.utils.FileUtils;
-import bio.cirro.agent.utils.TokenClient;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +21,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Singleton
 @AllArgsConstructor
 @Slf4j
 public class ExecutionService {
-    private final static String JOB_ID_REGEX = ".*Job ID: (\\d+).*";
+    private static final Pattern JOB_ID_REGEX = Pattern.compile(".*Job ID: (\\d+).*");
+
     private final AgentConfig agentConfig;
     private final TokenClient tokenClient;
     private final ExecutionRepository executionRepository;
@@ -42,20 +45,34 @@ public class ExecutionService {
                 .build();
         executionRepository.add(session);
 
-        writeParams(session);
-        writeConfig(session);
-        writeEnvironment(session);
-        writeAWSConfig(session);
+        var creds = tokenClient.generateCredentialsForExecutionSession(session);
+        session.setAwsCredentials(creds);
 
-        var executionOutput = startExecution(session);
-        session.setOutput(executionOutput);
+        try (var fileClient = new FileClient(session.getAwsCredentialsProvider())) {
+            // Set up working directory
+            writeParams(session, fileClient);
+            writeConfig(session);
+            writeEnvironment(session);
+            writeAwsConfig(session);
 
+            var executionOutput = startExecution(session);
+            session.setOutput(executionOutput);
+        } catch (Exception ex) {
+            executionRepository.removeSession(sessionId);
+            throw new ExecutionException("Failed to start execution", ex);
+        }
         return session;
     }
 
     public AWSCredentials generateExecutionS3Credentials(String sessionId) {
         var session = executionRepository.getSession(sessionId);
-        return tokenClient.generateCredentialsForExecutionSession(session);
+        var creds = tokenClient.generateCredentialsForExecutionSession(session);
+        return AWSCredentials.builder()
+                .accessKeyId(creds.accessKeyId())
+                .secretAccessKey(creds.secretAccessKey())
+                .sessionToken(creds.sessionToken())
+                .expiration(creds.expirationTime().orElse(null))
+                .build();
     }
 
     public void completeExecution(String sessionId) {
@@ -64,27 +81,45 @@ public class ExecutionService {
         executionRepository.removeSession(sessionId);
     }
 
-    private void writeParams(ExecutionSession session) {
-        // Fetch params from S3
-        // Write to file in local working directory
+    private void writeParams(ExecutionSession session, FileClient fileClient) {
+        try {
+            var configPath = session.getDatasetS3Path().resolve("config/params.json");
+            var params = fileClient.getObject(configPath);
+            Files.writeString(session.getParamsPath(), params);
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to download params file", e);
+        }
+
     }
 
     private void writeConfig(ExecutionSession session) {
-        // Write nextflow config file.
-        // What should we put here vs the headnode script?
+        StringBuilder configSb = new StringBuilder();
+        configSb.append(String.format("workDir = %s%n", session.getWorkingDirectory().toString()));
+
+        try {
+            Files.writeString(session.getNextflowConfigPath(), configSb.toString());
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to write config file", e);
+        }
+    }
+
+    private Map<String, String> generateEnvironment(ExecutionSession session) {
+        return Map.ofEntries(
+                Map.entry("DATASET_ID", session.getDatasetId()),
+                Map.entry("AWS_CONFIG_FILE", session.getAwsConfigPath().toString()),
+                Map.entry("AWS_SHARED_CREDENTIALS_FILE", session.getAwsCredentialsPath().toString())
+        );
     }
 
     private void writeEnvironment(ExecutionSession session) {
-        Map<String, String> environmentVariables = Map.ofEntries(
-                Map.entry("DATASET_ID", session.getDatasetId())
-        );
+        var environmentVariables = generateEnvironment(session);
 
         var environmentSb = new StringBuilder();
         for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {
             environmentSb.append(String.format("export %s=%s%n", entry.getKey(), entry.getValue()));
         }
 
-        var environmentFile = Paths.get(session.getWorkingDirectory().toString(), "environment.sh");
+        var environmentFile = session.getEnvironmentPath();
         try {
             FileUtils.writeScript(environmentFile, environmentSb.toString());
         } catch (IOException e) {
@@ -92,22 +127,21 @@ public class ExecutionService {
         }
     }
 
-    private void writeAWSConfig(ExecutionSession session) {
+    private void writeAwsConfig(ExecutionSession session) {
         // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
         awsConfigTemplate = awsConfigTemplate.replace("%%SESSION_ID%%", session.getSessionId());
-        var awsConfigPath = Paths.get(session.getWorkingDirectory().toString(), ".aws-config");
+
         try {
-            Files.writeString(awsConfigPath, awsConfigTemplate);
+            Files.writeString(session.getAwsConfigPath(), awsConfigTemplate);
         } catch (IOException e) {
             throw new ExecutionException("Failed to write AWS config", e);
         }
 
         // Write credential helper
         var credentialHelperScript = FileUtils.getResourceAsString("credential-helper.sh");
-        var credentialHelperPath = Paths.get(session.getWorkingDirectory().toString(), "credential-helper.sh");
         try {
-            FileUtils.writeScript(credentialHelperPath, credentialHelperScript);
+            FileUtils.writeScript(session.getCredentialsHelperPath(), credentialHelperScript);
         } catch (IOException e) {
             throw new ExecutionException("Failed to write credential helper", e);
         }
@@ -130,30 +164,32 @@ public class ExecutionService {
                 // TODO: Write default launch script?
             }
             log.debug("Using launch script: {}", launchScript);
-            var process = new ProcessBuilder()
+            var headnodeLaunchProcessBuilder = new ProcessBuilder()
                     .directory(session.getWorkingDirectory().toFile())
                     .command("sh", launchScript.toAbsolutePath().toString())
-                    .redirectErrorStream(true)
-                    .start();
+                    .redirectErrorStream(true);
+            // Set environment variables
+            var env = headnodeLaunchProcessBuilder.environment();
+            env.put("PROCESS_DIR", session.getWorkingDirectory().toString());
+            env.put("PROCESS_GUID", session.getDatasetId());
+            env.putAll(generateEnvironment(session));
 
-            var output = new StringBuilder();
-            var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
+            var headnodeLaunchProcess = headnodeLaunchProcessBuilder.start();
+
+            String processOutput;
+            try (var reader = new BufferedReader(new InputStreamReader(headnodeLaunchProcess.getInputStream()))) {
+                processOutput = reader.lines().collect(Collectors.joining("\n"));
             }
-            process.waitFor(10, TimeUnit.SECONDS);
+            headnodeLaunchProcess.waitFor(10, TimeUnit.SECONDS);
 
-            var processOutput = output.toString();
-
-            if (process.exitValue() != 0) {
+            if (headnodeLaunchProcess.exitValue() != 0) {
                 throw new ExecutionException("Execution failed: " + processOutput);
             }
-            process.destroy();
+            headnodeLaunchProcess.destroy();
             log.debug("Execution output: {}", processOutput);
 
             String jobId = null;
-            var matcher = Pattern.compile(JOB_ID_REGEX).matcher(processOutput);
+            var matcher = JOB_ID_REGEX.matcher(processOutput);
             if (matcher.find()) {
                 jobId = matcher.group(1);
             }

@@ -22,7 +22,7 @@ public class AgentClientFactory {
     private AgentClient clientSocket;
 
     public synchronized AgentClient connect(ConnectionInfo connectionInfo,
-                               MessageHandlerFunction messageHandler) {
+                                            MessageHandlerFunction messageHandler) {
         var request = HttpRequest
                 .GET(connectionInfo.url() + "?agentId=" + connectionInfo.agentId())
                 .body("")

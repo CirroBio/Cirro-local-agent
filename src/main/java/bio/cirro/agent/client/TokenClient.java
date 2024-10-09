@@ -1,12 +1,12 @@
-package bio.cirro.agent.utils;
+package bio.cirro.agent.client;
 
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.execution.ExecutionSession;
-import bio.cirro.agent.models.AWSCredentials;
 import io.micronaut.context.annotation.Bean;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
 import software.amazon.awssdk.policybuilder.iam.IamEffect;
 import software.amazon.awssdk.policybuilder.iam.IamPolicy;
@@ -37,27 +37,26 @@ public class TokenClient {
         return stsClient.getCallerIdentity().arn();
     }
 
-    public AWSCredentials generateCredentialsForExecutionSession(ExecutionSession executionSession) {
+    public AwsSessionCredentials generateCredentialsForExecutionSession(ExecutionSession executionSession) {
         var roleSessionName = String.format("%s-%s", agentId, executionSession.getUsername());
         var sessionPolicy = createPolicyForExecutionSession(executionSession);
-        var token = stsClient.assumeRole(
+        var response = stsClient.assumeRole(
                 r -> r.roleArn(roleArn)
                         .roleSessionName(roleSessionName)
                         .policy(sessionPolicy.toJson())
                         .durationSeconds(TOKEN_LIFETIME)
                         .externalId(agentId)
         );
-
-        return AWSCredentials.builder()
-                .accessKeyId(token.credentials().accessKeyId())
-                .secretAccessKey(token.credentials().secretAccessKey())
-                .sessionToken(token.credentials().sessionToken())
-                .expiration(token.credentials().expiration())
+        return AwsSessionCredentials.builder()
+                .accessKeyId(response.credentials().accessKeyId())
+                .secretAccessKey(response.credentials().secretAccessKey())
+                .sessionToken(response.credentials().sessionToken())
+                .expirationTime(response.credentials().expiration())
                 .build();
     }
 
     private IamPolicy createPolicyForExecutionSession(ExecutionSession executionSession) {
-        var datasetS3Path = executionSession.datasetS3Path();
+        var datasetS3Path = executionSession.getDatasetS3Path();
         var bucketArn = Arn.builder()
                 .partition(Optional.ofNullable(executionSession.getProjectAccount().partition()).orElse("aws"))
                 .service(S3Client.SERVICE_NAME)
