@@ -7,7 +7,7 @@ set -euo pipefail
 # Environment variables required:
 
 # - PROCESS_DIR: The directory which will be used for the headnode execution (absolute path)
-# - PROCESS_GUID: The unique identifier for the process
+# - PROCESS_NAME: The unique identifier for the process
 # - HEADNODE_ACCOUNTING: The accounting string to use for the headnode job
 # - HEADNODE_LABEL: A more readable label to use for the headnode job
 # - HEADNODE_PARTITION: The partition to use for the headnode job
@@ -20,10 +20,11 @@ sbatch \
     --chdir="${PROCESS_DIR}" \
     --error="${PROCESS_DIR}/process.err" \
     --output="${PROCESS_DIR}/process.out" \
-    --job-name="${PROCESS_GUID}" \
+    --job-name="${PROCESS_NAME}" \
     --account="${HEADNODE_ACCOUNTING}" \
     --extra="${HEADNODE_LABEL}" \
     --partition="${HEADNODE_PARTITION}" \
-    --cpus-per-task=${HEADNODE_CPUS:-4} \
+    --cpus-per-task="${HEADNODE_CPUS:-4}" \
     --mem="${HEADNODE_MEM:-4G}" \
-    --priority="${HEADNODE_PRIORITY:-10}"
+    --priority="${HEADNODE_PRIORITY:-10}" \
+    --parsable

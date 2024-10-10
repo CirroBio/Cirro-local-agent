@@ -21,13 +21,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Singleton
 @AllArgsConstructor
 @Slf4j
 public class ExecutionService {
-    private static final Pattern JOB_ID_REGEX = Pattern.compile(".*Job ID: (\\d+).*");
+    private static final Pattern JOB_ID_REGEX = Pattern.compile("^\\d+$");
 
     private final AgentConfig agentConfig;
     private final TokenClient tokenClient;
@@ -171,28 +170,34 @@ public class ExecutionService {
             // Set environment variables
             var env = headnodeLaunchProcessBuilder.environment();
             env.put("PROCESS_DIR", session.getWorkingDirectory().toString());
-            env.put("PROCESS_GUID", session.getDatasetId());
+            env.put("PROCESS_NAME", session.getDatasetId());
             env.putAll(generateEnvironment(session));
 
             var headnodeLaunchProcess = headnodeLaunchProcessBuilder.start();
 
-            String processOutput;
+            StringBuilder processOutputSb = new StringBuilder();
+            String jobId = null;
             try (var reader = new BufferedReader(new InputStreamReader(headnodeLaunchProcess.getInputStream()))) {
-                processOutput = reader.lines().collect(Collectors.joining("\n"));
+                for (String line : reader.lines().toList()) {
+                    // Try to extract job ID
+                    if (JOB_ID_REGEX.matcher(line).matches()) {
+                        jobId = line;
+                    }
+                    processOutputSb.append(line).append("\n");
+                }
             }
+            var processOutput = processOutputSb.toString();
+            log.debug("Execution output: {}", processOutput);
+            if (jobId == null) {
+                throw new ExecutionException("Failed to extract job ID");
+            }
+
             headnodeLaunchProcess.waitFor(10, TimeUnit.SECONDS);
 
             if (headnodeLaunchProcess.exitValue() != 0) {
                 throw new ExecutionException("Execution failed: " + processOutput);
             }
             headnodeLaunchProcess.destroy();
-            log.debug("Execution output: {}", processOutput);
-
-            String jobId = null;
-            var matcher = JOB_ID_REGEX.matcher(processOutput);
-            if (matcher.find()) {
-                jobId = matcher.group(1);
-            }
             return new ExecutionSessionOutput(jobId, processOutput);
         } catch (IOException e) {
             throw new ExecutionException(e.getMessage());
