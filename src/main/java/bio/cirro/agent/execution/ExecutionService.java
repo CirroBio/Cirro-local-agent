@@ -10,6 +10,7 @@ import bio.cirro.agent.utils.FileUtils;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.sts.StsClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,21 +30,20 @@ public class ExecutionService {
     private static final Pattern JOB_ID_REGEX = Pattern.compile("^\\d+$");
 
     private final AgentConfig agentConfig;
-    private final TokenClient tokenClient;
     private final ExecutionRepository executionRepository;
+    private final StsClient stsClient;
 
     public ExecutionSession createSession(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         var sessionId = UUID.randomUUID().toString();
         var workingDirectory = Paths.get(agentConfig.getAbsoluteWorkDirectory().toString(), sessionId);
         var session = ExecutionSession.builder()
                 .sessionId(sessionId)
-                .datasetId(runAnalysisCommandMessage.getDatasetId())
-                .projectId(runAnalysisCommandMessage.getProjectId())
-                .datasetS3(runAnalysisCommandMessage.getDatasetPath())
+                .messageData(runAnalysisCommandMessage)
                 .workingDirectory(workingDirectory)
                 .build();
         executionRepository.add(session);
 
+        var tokenClient = new TokenClient(stsClient, session.getFileAccessRoleArn(), agentConfig.getId());
         var creds = tokenClient.generateCredentialsForExecutionSession(session);
         session.setAwsCredentials(creds);
 
@@ -65,6 +65,7 @@ public class ExecutionService {
 
     public AWSCredentials generateExecutionS3Credentials(String sessionId) {
         var session = executionRepository.getSession(sessionId);
+        var tokenClient = new TokenClient(stsClient, session.getFileAccessRoleArn(), agentConfig.getId());
         var creds = tokenClient.generateCredentialsForExecutionSession(session);
         return AWSCredentials.builder()
                 .accessKeyId(creds.accessKeyId())
@@ -82,13 +83,12 @@ public class ExecutionService {
 
     private void writeParams(ExecutionSession session, FileClient fileClient) {
         try {
-            var configPath = session.getDatasetS3Path().resolve("config/params.json");
+            var configPath = session.getParamsS3Path();
             var params = fileClient.getObject(configPath);
             Files.writeString(session.getParamsPath(), params);
         } catch (IOException e) {
             throw new ExecutionException("Failed to download params file", e);
         }
-
     }
 
     private void writeConfig(ExecutionSession session) {

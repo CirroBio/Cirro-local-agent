@@ -73,6 +73,9 @@ public abstract class AgentClient implements AutoCloseable {
      * Is the WebSocket connection open?
      */
     public boolean isOpen() {
+        if (session == null) {
+            return false;
+        }
         return session.isOpen();
     }
 }

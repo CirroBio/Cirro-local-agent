@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 
 public class FileUtils {
+    private FileUtils() {
+        // Utility class
+    }
     public static void writeScript(Path scriptPath, String script) throws IOException {
         Files.writeString(scriptPath, script);
         var permissions = Files.getPosixFilePermissions(scriptPath);

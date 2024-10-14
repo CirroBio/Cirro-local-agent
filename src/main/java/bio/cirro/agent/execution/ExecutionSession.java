@@ -1,6 +1,6 @@
 package bio.cirro.agent.execution;
 
-import bio.cirro.agent.models.CloudAccount;
+import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.utils.S3Path;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,17 +17,33 @@ import java.nio.file.Path;
 public class ExecutionSession {
     private final String sessionId;
     private final Path workingDirectory;
-    private final String datasetId;
-    private final String projectId;
-    private final String username;
-    private final String datasetS3;
-    private final CloudAccount projectAccount;
+    private final RunAnalysisCommandMessage messageData;
 
     private ExecutionSessionOutput output;
     private AwsCredentials awsCredentials;
 
+    public String getDatasetId() {
+        return messageData.getDatasetId();
+    }
+
+    public String getProjectId() {
+        return messageData.getProjectId();
+    }
+
+    public String getUsername() {
+        return messageData.getUsername();
+    }
+
+    public String getFileAccessRoleArn() {
+        return messageData.getFileAccessRoleArn();
+    }
+
+    public S3Path getParamsS3Path() {
+        return S3Path.parse(messageData.getParameterFilePath());
+    }
+
     public S3Path getDatasetS3Path() {
-        return S3Path.parse(datasetS3);
+        return S3Path.parse(messageData.getDatasetPath());
     }
 
     public Path getNextflowConfigPath() {

@@ -1,5 +1,6 @@
 package bio.cirro.agent.dto;
 
+import bio.cirro.agent.models.Code;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -16,12 +17,12 @@ public class RunAnalysisCommandMessage extends PortalMessage {
     String datasetId;
     String projectId;
     String region;
-    String workflow;
-    String script;
-    String version;
+    Code workflowCode;
     String executor;
     Map<String, String> agentParameters;
     String parameterFilePath;
+    String fileAccessRoleArn;
     String datasetPath;
     String githubToken;
+    String username;
 }

@@ -35,6 +35,7 @@ public class AgentClientFactory {
 
         assert client != null;
         client.setMessageHandler(messageHandler);
+        clientSocket = client;
         return client;
     }
 }

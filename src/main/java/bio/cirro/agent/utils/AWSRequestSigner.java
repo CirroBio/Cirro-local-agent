@@ -4,6 +4,7 @@ import bio.cirro.agent.exception.AgentException;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MutableHttpRequest;
 import jakarta.inject.Singleton;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutionException;
  */
 @Singleton
 @Slf4j
+@AllArgsConstructor
 public class AWSRequestSigner {
     private static final String SERVICE_NAME = "execute-api";
 

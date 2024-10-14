@@ -1,51 +1,32 @@
 package bio.cirro.agent.client;
 
-import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.execution.ExecutionSession;
-import io.micronaut.context.annotation.Bean;
-import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.policybuilder.iam.IamConditionOperator;
 import software.amazon.awssdk.policybuilder.iam.IamEffect;
 import software.amazon.awssdk.policybuilder.iam.IamPolicy;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sts.StsClient;
 
 import java.time.Duration;
-import java.util.Optional;
 
-@Singleton
 @AllArgsConstructor
 public class TokenClient {
     private static final int TOKEN_LIFETIME = (int) Duration.ofHours(1).getSeconds();
+    private static final int MAX_ROLE_SESSION_NAME_LENGTH = 64;
     private final StsClient stsClient;
     private final String roleArn;
     private final String agentId;
 
-    @Bean
-    public static TokenClient create(AgentConfig agentConfig) {
-        return new TokenClient(
-                StsClient.create(),
-                agentConfig.getFileAccessRoleArn(),
-                agentConfig.getId()
-        );
-    }
-
-    public String getCurrentIdentity() {
-        return stsClient.getCallerIdentity().arn();
-    }
-
     public AwsSessionCredentials generateCredentialsForExecutionSession(ExecutionSession executionSession) {
-        var roleSessionName = String.format("%s-%s", agentId, executionSession.getUsername());
         var sessionPolicy = createPolicyForExecutionSession(executionSession);
         var response = stsClient.assumeRole(
                 r -> r.roleArn(roleArn)
-                        .roleSessionName(roleSessionName)
+                        .roleSessionName(generateRoleSessionName(executionSession.getUsername()))
                         .policy(sessionPolicy.toJson())
                         .durationSeconds(TOKEN_LIFETIME)
-                        .externalId(agentId)
+                        .externalId(executionSession.getProjectId())
         );
         return AwsSessionCredentials.builder()
                 .accessKeyId(response.credentials().accessKeyId())
@@ -55,10 +36,15 @@ public class TokenClient {
                 .build();
     }
 
+    private String generateRoleSessionName(String username) {
+        var roleSessionName = String.format("%s-%s", agentId, username);
+        return roleSessionName.substring(0, Math.min(roleSessionName.length(), MAX_ROLE_SESSION_NAME_LENGTH));
+    }
+
     private IamPolicy createPolicyForExecutionSession(ExecutionSession executionSession) {
         var datasetS3Path = executionSession.getDatasetS3Path();
         var bucketArn = Arn.builder()
-                .partition(Optional.ofNullable(executionSession.getProjectAccount().partition()).orElse("aws"))
+                .partition("aws")
                 .service(S3Client.SERVICE_NAME)
                 .resource(datasetS3Path.getBucket())
                 .build()
@@ -70,7 +56,7 @@ public class TokenClient {
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:ListBucket")
                         .addAction("s3:GetBucketLocation")
-                        .addResource(bucketArn)
+                        .addResource("*")
                 )
                 .addStatement(b -> b
                         .sid("AllowWriteToDataset")
@@ -80,24 +66,10 @@ public class TokenClient {
                         .addResource(String.format("%s/%s/*", bucketArn, datasetS3Path.getKey()))
                 )
                 .addStatement(b -> b
-                        .sid("AllowReadFromProject")
+                        .sid("AllowRead")
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:GetObject*")
-                        .addResource(String.format("%s/*", bucketArn))
-                )
-                .addStatement(b -> b
-                        .sid("AllowReadCrossAccount")
-                        .effect(IamEffect.ALLOW)
-                        .addAction("s3:GetObject*")
-                        .addAction("s3:PutObject")
-                        .addAction("s3:ListBucket")
-                        .addAction("s3:GetBucketLocation")
                         .addResource("*")
-                        .addCondition(c -> c
-                                .operator(IamConditionOperator.STRING_NOT_EQUALS)
-                                .key("aws:ResourceAccount")
-                                .value(executionSession.getProjectAccount().accountId())
-                        )
                 )
                 .build();
     }

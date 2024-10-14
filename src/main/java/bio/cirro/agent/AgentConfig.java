@@ -14,7 +14,6 @@ import java.time.Duration;
 @Getter
 public class AgentConfig {
     private String url;
-    private String token;
     private String id;
     private int heartbeatInterval;
     private int watchInterval;
