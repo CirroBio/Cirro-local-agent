@@ -71,6 +71,14 @@ public class TokenClient {
                         .addAction("s3:GetObject*")
                         .addResource("*")
                 )
+                .addStatement(b -> b
+                        .sid("AllowPullImage")
+                        .effect(IamEffect.ALLOW)
+                        .addAction("ecr:GetAuthorizationToken")
+                        .addAction("ecr:BatchCheckLayerAvailability")
+                        .addAction("ecr:GetDownloadUrlForLayer")
+                        .addResource("*")
+                )
                 .build();
     }
 }
