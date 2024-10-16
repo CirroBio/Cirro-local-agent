@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -euo pipefail
 
 # Required input arguments
 HEADNODE_IMAGE="${1}"

@@ -31,6 +31,5 @@ sbatch \
     --account="${HEADNODE_ACCOUNTING}" \
     --partition="${HEADNODE_JOB_QUEUE}" \
     --cpus-per-task="${HEADNODE_CPUS:-4}" \
-    --mem="${HEADNODE_MEM:-4G}" \
     --priority="${HEADNODE_PRIORITY:-10}" \
     --parsable

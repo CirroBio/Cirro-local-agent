@@ -1,6 +1,5 @@
 #!/bin/bash
-
-set -e
+set -euo pipefail
 
 # Required Environment Variables:
 # - CIRRO_AGENT_WORK_DIRECTORY: The root directory for all working files used by the agent
