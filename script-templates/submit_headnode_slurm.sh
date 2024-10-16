@@ -19,6 +19,9 @@ set -euo pipefail
 # - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 4G)
 # - HEADNODE_PRIORITY: The priority to use for the headnode job
 
+# Raise an error if the DATASET_ID variable is empty or not set
+[[ -z "${DATASET_ID}" ]] && exit 1
+
 # Internal environment variables
 DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PROJECT_ID}/datasets/${DATASET_ID}"
 
