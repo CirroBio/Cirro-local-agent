@@ -6,6 +6,9 @@ set -e
 HEADNODE_IMAGE="${1}"
 LOCAL_IMAGE="${2}"
 
+echo "$(date) Pulling image: ${HEADNODE_IMAGE}"
+echo "$(date) Local image: ${LOCAL_IMAGE}"
+
 # If the local image exists, exit
 if [[ -f "${LOCAL_IMAGE}" ]]; then
     echo "$(date) Local image already exists: ${LOCAL_IMAGE}"
