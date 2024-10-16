@@ -25,15 +25,17 @@ set -euo pipefail
 # Internal environment variables
 DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PROJECT_ID}/datasets/${DATASET_ID}"
 
+# Start the job
+cd ${DATASET_DIR}
+echo "Running analysis from ${DATASET_DIR}"
 sbatch \
     ${DATASET_DIR}/run_headnode.sh \
-    --chdir="${DATASET_DIR}" \
-    --error="${DATASET_DIR}/process.err" \
-    --output="${DATASET_DIR}/process.out" \
+    --error=process.err \
+    --output=process.out \
     --job-name="${HEADNODE_NAME}" \
     --account="${HEADNODE_ACCOUNTING}" \
     --partition="${HEADNODE_JOB_QUEUE}" \
-    --cpus-per-task="${HEADNODE_CPUS:-4}" \
+    --cpus-per-task=${HEADNODE_CPUS:-4} \
     --mem="${HEADNODE_MEM:-8G}" \
-    --priority="${HEADNODE_PRIORITY:-10}" \
+    --priority=${HEADNODE_PRIORITY:-10} \
     --parsable
