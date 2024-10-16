@@ -16,7 +16,7 @@ set -euo pipefail
 # Optional Environment Variables:
 
 # - HEADNODE_CPUS: The number of CPUs to use for the headnode job
-# - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 4G)
+# - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 8G)
 # - HEADNODE_PRIORITY: The priority to use for the headnode job
 
 # Raise an error if the DATASET_ID variable is empty or not set
@@ -34,5 +34,6 @@ sbatch \
     --account="${HEADNODE_ACCOUNTING}" \
     --partition="${HEADNODE_JOB_QUEUE}" \
     --cpus-per-task="${HEADNODE_CPUS:-4}" \
+    --mem="${HEADNODE_MEM:-8G}" \
     --priority="${HEADNODE_PRIORITY:-10}" \
     --parsable
