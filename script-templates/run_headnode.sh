@@ -7,14 +7,14 @@ set -euo pipefail
 # - DATASET_ID: The unique identifier for the dataset
 # - HEADNODE_IMAGE: The image to pull
 
+# Source the environment variables for this analysis
+source env.list
+
 # If there is a headnode setup script provided, run it
 if [[ -f "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh" ]]; then
     echo "$(date) Running headnode setup script"
     export "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh"
 fi
-
-# Source the environment variables for this analysis
-source env.list
 
 # Internal environment variables
 # - PROJECT_DIR: The directory used for all local files (scoped to this particular project)
@@ -27,6 +27,7 @@ DATASET_DIR="${PROJECT_DIR}/datasets/${DATASET_ID}"
 LOCAL_IMAGE="${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images/$(echo ${HEADNODE_IMAGE} | sed '.' '_' | sed ':' '_' | sed '/' '_').sif"
 
 # Pull the headnode image using apptainer
+mkdir -p "${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images"
 bash apptainer_pull.sh "${HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
 
 echo "$(date) Running headnode image: ${LOCAL_IMAGE}"
