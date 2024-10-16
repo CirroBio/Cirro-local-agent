@@ -24,7 +24,7 @@ DATASET_DIR="${PROJECT_DIR}/datasets/${DATASET_ID}"
 
 # Format the path to the local image, replacing special characters
 # e.g. HEADNODE_IMAGE=730335334008.dkr.ecr.us-west-2.amazonaws.com/cirro-headnode:slurm-agent
-LOCAL_IMAGE="${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images/$(echo ${HEADNODE_IMAGE} | sed '.' '_' | sed ':' '_' | sed '/' '_').sif"
+LOCAL_IMAGE="${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images/$(echo ${HEADNODE_IMAGE} | tr '.' '_' | tr ':' '_' | tr '/' '_').sif"
 
 # Pull the headnode image using apptainer
 mkdir -p "${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images"
