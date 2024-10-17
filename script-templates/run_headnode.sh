@@ -13,7 +13,7 @@ source env.list
 # If there is a headnode setup script provided, run it
 if [[ -f "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh" ]]; then
     echo "$(date) Running headnode setup script"
-    export "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh"
+    source "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh"
 fi
 
 # Internal environment variables
@@ -35,6 +35,8 @@ echo "$(date) Project directory: ${PROJECT_DIR}"
 echo "$(date) Dataset directory: ${DATASET_DIR}"
 echo "$(date) Temporary directory: ${TMPDIR}"
 
+mkdir -p "${TMPDIR}/.nextflow"
+
 # Run the headnode image
 apptainer run \
     --containall \
@@ -42,5 +44,6 @@ apptainer run \
     --env-file env.list \
     --pwd "${DATASET_DIR}" \
     --workdir "${TMPDIR}" \
+    --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
     "${LOCAL_IMAGE}" \
     bash /opt/bin/entrypoint.sh
