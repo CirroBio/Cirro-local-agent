@@ -29,7 +29,6 @@ DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PROJECT_ID}/datasets/${DAT
 cd ${DATASET_DIR}
 echo "Running analysis from ${DATASET_DIR}"
 sbatch \
-    ${DATASET_DIR}/run_headnode.sh \
     --error=process.err \
     --output=process.out \
     --job-name="${HEADNODE_NAME}" \
@@ -38,4 +37,5 @@ sbatch \
     --cpus-per-task=${HEADNODE_CPUS:-4} \
     --mem="${HEADNODE_MEM:-8G}" \
     --priority=${HEADNODE_PRIORITY:-10} \
-    --parsable
+    --parsable \
+    ${DATASET_DIR}/run_headnode.sh
