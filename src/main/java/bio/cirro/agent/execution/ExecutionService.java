@@ -104,7 +104,7 @@ public class ExecutionService {
 
     private Map<String, String> generateEnvironment(ExecutionSession session) {
         return Map.ofEntries(
-                Map.entry("DATASET_ID", session.getDatasetId()),
+                Map.entry("PW_DATASET", session.getDatasetId()),
                 Map.entry("AWS_CONFIG_FILE", session.getAwsConfigPath().toString()),
                 Map.entry("AWS_SHARED_CREDENTIALS_FILE", session.getAwsCredentialsPath().toString())
         );

@@ -3,8 +3,8 @@ set -euo pipefail
 
 # Required Environment Variables:
 # - CIRRO_AGENT_WORK_DIRECTORY: The root directory for all working files used by the agent
-# - PROJECT_ID: The unique identifier for the project
-# - DATASET_ID: The unique identifier for the dataset
+# - PW_PROJECT: The unique identifier for the project
+# - PW_DATASET: The unique identifier for the dataset
 # - HEADNODE_IMAGE: The image to pull
 
 # Source the environment variables for this analysis
@@ -18,9 +18,9 @@ fi
 
 # Internal environment variables
 # - PROJECT_DIR: The directory used for all local files (scoped to this particular project)
-PROJECT_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PROJECT_ID}"
+PROJECT_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PW_PROJECT}"
 # - DATASET_DIR: The directory used for executing this particular dataset
-DATASET_DIR="${PROJECT_DIR}/datasets/${DATASET_ID}"
+DATASET_DIR="${PROJECT_DIR}/datasets/${PW_DATASET}"
 
 # Format the path to the local image, replacing special characters
 # e.g. HEADNODE_IMAGE=730335334008.dkr.ecr.us-west-2.amazonaws.com/cirro-headnode:slurm-agent

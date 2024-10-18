@@ -7,8 +7,8 @@ set -euo pipefail
 # Required Environment Variables:
 
 # - CIRRO_AGENT_WORK_DIRECTORY: The root directory for all working files used by the agent
-# - PROJECT_ID: The unique identifier for the project
-# - DATASET_ID: The unique identifier for the dataset within the project
+# - PW_PROJECT: The unique identifier for the project
+# - PW_DATASET: The unique identifier for the dataset within the project
 # - HEADNODE_NAME: The string used to label the headnode job on the cluster (e.g. the dataset name)
 # - HEADNODE_ACCOUNTING: The accounting string to use for the headnode job
 # - HEADNODE_JOB_QUEUE: The partition to use for the headnode job
@@ -19,11 +19,11 @@ set -euo pipefail
 # - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 8G)
 # - HEADNODE_PRIORITY: The priority to use for the headnode job
 
-# Raise an error if the DATASET_ID variable is empty or not set
-[[ -z "${DATASET_ID}" ]] && exit 1
+# Raise an error if the PW_DATASET variable is empty or not set
+[[ -z "${PW_DATASET}" ]] && exit 1
 
 # Internal environment variables
-DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PROJECT_ID}/datasets/${DATASET_ID}"
+DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PW_PROJECT}/datasets/${PW_DATASET}"
 
 # Start the job
 cd ${DATASET_DIR}
