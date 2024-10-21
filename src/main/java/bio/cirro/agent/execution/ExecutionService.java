@@ -1,7 +1,6 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
-import bio.cirro.agent.client.FileClient;
 import bio.cirro.agent.client.TokenClient;
 import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.exception.ExecutionException;
@@ -10,6 +9,7 @@ import bio.cirro.agent.utils.FileUtils;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import software.amazon.awssdk.services.sts.StsClient;
 
 import java.io.BufferedReader;
@@ -18,6 +18,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class ExecutionService {
     private static final Pattern JOB_ID_REGEX = Pattern.compile("^\\d+$");
+    private static final List<String> ALLOWED_ENV_PREFIXES = List.of("PW_", "CIRRO_");
 
     private final AgentConfig agentConfig;
     private final ExecutionRepository executionRepository;
@@ -47,10 +50,8 @@ public class ExecutionService {
         var creds = tokenClient.generateCredentialsForExecutionSession(session);
         session.setAwsCredentials(creds);
 
-        try (var fileClient = new FileClient(session.getAwsCredentialsProvider())) {
+        try {
             // Set up working directory
-            writeParams(session, fileClient);
-            writeConfig(session);
             writeEnvironment(session);
             writeAwsConfig(session);
 
@@ -81,35 +82,6 @@ public class ExecutionService {
         executionRepository.removeSession(sessionId);
     }
 
-    private void writeParams(ExecutionSession session, FileClient fileClient) {
-        try {
-            var configPath = session.getParamsS3Path();
-            var params = fileClient.getObject(configPath);
-            Files.writeString(session.getParamsPath(), params);
-        } catch (IOException e) {
-            throw new ExecutionException("Failed to download params file", e);
-        }
-    }
-
-    private void writeConfig(ExecutionSession session) {
-        StringBuilder configSb = new StringBuilder();
-        configSb.append(String.format("workDir = %s%n", session.getWorkingDirectory().toString()));
-
-        try {
-            Files.writeString(session.getNextflowConfigPath(), configSb.toString());
-        } catch (IOException e) {
-            throw new ExecutionException("Failed to write config file", e);
-        }
-    }
-
-    private Map<String, String> generateEnvironment(ExecutionSession session) {
-        return Map.ofEntries(
-                Map.entry("PW_DATASET", session.getDatasetId()),
-                Map.entry("AWS_CONFIG_FILE", session.getAwsConfigPath().toString()),
-                Map.entry("AWS_SHARED_CREDENTIALS_FILE", session.getAwsCredentialsPath().toString())
-        );
-    }
-
     private void writeEnvironment(ExecutionSession session) {
         var environmentVariables = generateEnvironment(session);
 
@@ -124,6 +96,26 @@ public class ExecutionService {
         } catch (IOException e) {
             throw new ExecutionException("Failed to write environment file", e);
         }
+    }
+
+    private Map<String, String> generateEnvironment(ExecutionSession session) {
+        var environment = new HashMap<String, String>();
+        environment.put("PW_DATASET", session.getDatasetId());
+        environment.put("AWS_CONFIG_FILE", session.getAwsConfigPath().toString());
+        environment.put("AWS_SHARED_CREDENTIALS_FILE", session.getAwsCredentialsPath().toString());
+
+        // Add any variables injected by Cirro
+        for (var variable : session.getMessageData().getEnvironment().entrySet()) {
+            // Check if variable is allowed to be set
+            if (ALLOWED_ENV_PREFIXES.stream().noneMatch(variable.getKey()::startsWith)) {
+                log.warn("Setting of environment variable {} not allowed", variable.getKey());
+                continue;
+            }
+
+            environment.put(variable.getKey(), StringEscapeUtils.escapeXSI(variable.getValue()));
+        }
+
+        return environment;
     }
 
     private void writeAwsConfig(ExecutionSession session) {

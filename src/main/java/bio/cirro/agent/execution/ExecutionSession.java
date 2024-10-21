@@ -38,20 +38,8 @@ public class ExecutionSession {
         return messageData.getFileAccessRoleArn();
     }
 
-    public S3Path getParamsS3Path() {
-        return S3Path.parse(messageData.getParameterFilePath());
-    }
-
     public S3Path getDatasetS3Path() {
         return S3Path.parse(messageData.getDatasetPath());
-    }
-
-    public Path getNextflowConfigPath() {
-        return workingDirectory.resolve("nextflow.config");
-    }
-
-    public Path getParamsPath() {
-        return workingDirectory.resolve("params.json");
     }
 
     public Path getEnvironmentPath() {

@@ -19,8 +19,7 @@ public class RunAnalysisCommandMessage extends PortalMessage {
     String region;
     Code workflowCode;
     String executor;
-    Map<String, String> agentParameters;
-    String parameterFilePath;
+    Map<String, String> environment;
     String fileAccessRoleArn;
     String datasetPath;
     String githubToken;
