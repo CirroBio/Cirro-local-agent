@@ -37,6 +37,7 @@ dependencies {
     implementation "io.micronaut.serde:micronaut-serde-jackson"
     implementation "io.micronaut.validation:micronaut-validation"
     implementation "io.micronaut:micronaut-http-client"
+    implementation "io.micronaut:micronaut-http-server-netty"
     implementation 'io.micronaut:micronaut-websocket'
     implementation "io.micronaut.reactor:micronaut-reactor"
     implementation "software.amazon.awssdk:http-auth-aws:${awsSdkVersion}"

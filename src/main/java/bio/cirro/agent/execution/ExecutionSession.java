@@ -9,6 +9,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
 
 
 @AllArgsConstructor
@@ -46,6 +48,9 @@ public class ExecutionSession {
         return workingDirectory.resolve("environment.json");
     }
 
+    public Map<String, String> getEnvironment() {
+        return Optional.ofNullable(messageData.getEnvironment()).orElse(Map.of());
+    }
     public Path getAwsConfigPath() {
         return workingDirectory.resolve("aws.config");
     }

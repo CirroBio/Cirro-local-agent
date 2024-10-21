@@ -52,6 +52,7 @@ public class ExecutionService {
 
         try {
             // Set up working directory
+            Files.createDirectories(workingDirectory);
             writeEnvironment(session);
             writeAwsConfig(session);
 
@@ -105,7 +106,7 @@ public class ExecutionService {
         environment.put("AWS_SHARED_CREDENTIALS_FILE", session.getAwsCredentialsPath().toString());
 
         // Add any variables injected by Cirro
-        for (var variable : session.getMessageData().getEnvironment().entrySet()) {
+        for (var variable : session.getEnvironment().entrySet()) {
             // Check if variable is allowed to be set
             if (ALLOWED_ENV_PREFIXES.stream().noneMatch(variable.getKey()::startsWith)) {
                 log.warn("Setting of environment variable {} not allowed", variable.getKey());
@@ -122,6 +123,7 @@ public class ExecutionService {
         // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
         awsConfigTemplate = awsConfigTemplate.replace("%%SESSION_ID%%", session.getSessionId());
+        awsConfigTemplate = awsConfigTemplate.replace("%%AGENT_URL%%", "http://localhost");
 
         try {
             Files.writeString(session.getAwsConfigPath(), awsConfigTemplate);
@@ -190,7 +192,7 @@ public class ExecutionService {
                 throw new ExecutionException("Execution failed: " + processOutput);
             }
             headnodeLaunchProcess.destroy();
-            return new ExecutionSessionOutput(jobId, processOutput);
+            return new ExecutionSessionOutput(processOutput, jobId);
         } catch (IOException e) {
             throw new ExecutionException(e.getMessage());
         } catch (InterruptedException e) {

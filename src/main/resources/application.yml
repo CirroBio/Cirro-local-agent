@@ -1,3 +1,6 @@
+micronaut:
+  server:
+    port: -1
 cirro:
   agent:
     url: https://app.cirro.bio
@@ -7,3 +10,4 @@ cirro:
     log-level: INFO
     work-directory: work/
     version: 0.1.0
+    scripts-directory: scripts/

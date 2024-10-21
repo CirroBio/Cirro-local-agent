@@ -9,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 @AllArgsConstructor
 public class ExecutionRepository {
-    private final Map<String, ExecutionSession> sessionMap = new ConcurrentHashMap<>();
+    private static final Map<String, ExecutionSession> sessionMap = new ConcurrentHashMap<>();
 
     public void add(ExecutionSession session) {
         sessionMap.put(session.getSessionId(), session);
