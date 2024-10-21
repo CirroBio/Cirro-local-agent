@@ -36,6 +36,6 @@ sbatch \
     --partition="${HEADNODE_JOB_QUEUE}" \
     --cpus-per-task=${HEADNODE_CPUS:-4} \
     --mem="${HEADNODE_MEM:-8G}" \
-    --priority=${HEADNODE_PRIORITY:-10} \
+    --priority="${HEADNODE_PRIORITY:-10}" \
     --parsable \
     ${DATASET_DIR}/run_headnode.sh
