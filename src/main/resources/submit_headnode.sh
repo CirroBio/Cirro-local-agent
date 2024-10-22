@@ -1,4 +1,0 @@
-
-# CONTAINER IMAGE
-
-sbatch

@@ -1,23 +1,22 @@
 #!/bin/bash
 # https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-sourcing-external.html
 
-for i in "$@"; do
-  case $i in
-    --session-id=*)
-      SESSION_ID="${i#*=}"
-      shift
-      ;;
-    --agent-endpoint=*)
-      AGENT_ENDPOINT="${i#*=}"
-      shift
-      ;;
-    -*)
-      echo "Unknown option $i"
-      exit 1
-      ;;
-    *)
-      ;;
-  esac
-done
+# Check if environment variables are set
+if [ -z "$CIRRO_AGENT_ENDPOINT" ]; then
+  echo "CIRRO_AGENT_ENDPOINT is not set"
+  exit 1
+fi
 
-curl "${AGENT_ENDPOINT}/executions/${SESSION_ID}/s3-token"
+if [ -z "$CIRRO_SESSION_ID" ]; then
+  echo "CIRRO_SESSION_ID is not set"
+  exit 1
+fi
+
+if [ -z "$CIRRO_AGENT_TOKEN" ]; then
+  echo "CIRRO_AGENT_TOKEN is not set"
+  exit 1
+fi
+
+curl "${CIRRO_AGENT_ENDPOINT}/executions/${CIRRO_SESSION_ID}/s3-token" \
+  -X POST \
+  -H "Authorization: Bearer ${CIRRO_AGENT_TOKEN}"

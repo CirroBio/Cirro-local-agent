@@ -1,14 +1,18 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.dto.RunAnalysisCommandMessage;
+import bio.cirro.agent.models.Status;
 import bio.cirro.agent.utils.S3Path;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,13 +20,17 @@ import java.util.Optional;
 @AllArgsConstructor
 @Data
 @Builder
+@Slf4j
 public class ExecutionSession {
+    private static final List<String> ALLOWED_ENV_PREFIXES = List.of("PW_", "CIRRO_");
+
     private final String sessionId;
     private final Path workingDirectory;
     private final RunAnalysisCommandMessage messageData;
+    private final Status status;
+    private final Instant createdAt;
 
     private ExecutionSessionOutput output;
-    private AwsCredentials awsCredentials;
 
     public String getDatasetId() {
         return messageData.getDatasetId();
@@ -45,11 +53,28 @@ public class ExecutionSession {
     }
 
     public Path getEnvironmentPath() {
-        return workingDirectory.resolve("environment.json");
+        return workingDirectory.resolve("environment.sh");
     }
 
     public Map<String, String> getEnvironment() {
-        return Optional.ofNullable(messageData.getEnvironment()).orElse(Map.of());
+        // Add any variables injected by Cirro
+        var environment = Optional.ofNullable(messageData.getEnvironment())
+                .orElse(new HashMap<>());
+        for (var variable : environment.entrySet()) {
+            // Check if variable is allowed to be set
+            if (ALLOWED_ENV_PREFIXES.stream().noneMatch(variable.getKey()::startsWith)) {
+                log.warn("Setting of environment variable {} not allowed", variable.getKey());
+                continue;
+            }
+
+            environment.put(variable.getKey(), StringEscapeUtils.escapeXSI(variable.getValue()));
+        }
+
+        environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
+        environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
+        environment.put("CIRRO_WORKING_DIR", workingDirectory.toString());
+        environment.put("CIRRO_SESSION_ID", sessionId);
+        return new HashMap<>(environment);
     }
     public Path getAwsConfigPath() {
         return workingDirectory.resolve("aws.config");
@@ -61,9 +86,5 @@ public class ExecutionSession {
 
     public Path getCredentialsHelperPath() {
         return workingDirectory.resolve("credentials-helper.sh");
-    }
-
-    public AwsCredentialsProvider getAwsCredentialsProvider() {
-        return () -> awsCredentials;
     }
 }

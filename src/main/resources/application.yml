@@ -1,6 +1,6 @@
 micronaut:
   server:
-    port: -1
+    port: 8080
 cirro:
   agent:
     url: https://app.cirro.bio

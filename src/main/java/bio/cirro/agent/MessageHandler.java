@@ -5,7 +5,7 @@ import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.dto.RunAnalysisResponseMessage;
 import bio.cirro.agent.dto.UnknownMessage;
 import bio.cirro.agent.exception.ExecutionException;
-import bio.cirro.agent.execution.ExecutionService;
+import bio.cirro.agent.execution.ExecutionCreateService;
 import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 @AllArgsConstructor
 public class MessageHandler {
-    private final ExecutionService executionService;
+    private final ExecutionCreateService executionCreateService;
 
     public Optional<PortalMessage> handleMessage(PortalMessage message) {
         return switch (message) {
@@ -40,7 +40,7 @@ public class MessageHandler {
 
     private RunAnalysisResponseMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         try {
-            var execution = executionService.createSession(runAnalysisCommandMessage);
+            var execution = executionCreateService.createSession(runAnalysisCommandMessage);
             return RunAnalysisResponseMessage.builder()
                     .output(execution.getOutput().stdout())
                     .nativeJobId(execution.getOutput().localJobId())

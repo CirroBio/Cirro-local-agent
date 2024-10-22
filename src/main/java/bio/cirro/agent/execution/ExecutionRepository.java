@@ -3,6 +3,7 @@ package bio.cirro.agent.execution;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +14,10 @@ public class ExecutionRepository {
 
     public void add(ExecutionSession session) {
         sessionMap.put(session.getSessionId(), session);
+    }
+
+    public List<ExecutionSession> getAll() {
+        return List.copyOf(sessionMap.values());
     }
 
     public ExecutionSession getSession(String sessionId) {

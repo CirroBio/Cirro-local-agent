@@ -1,9 +1,11 @@
 package bio.cirro.agent;
 
+import com.auth0.jwt.algorithms.Algorithm;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,5 +51,9 @@ public class AgentConfig {
 
     public String getUserAgent() {
         return "Cirro Agent/" + version;
+    }
+
+    public Algorithm getJwtSigner() {
+        return Algorithm.HMAC256(RandomStringUtils.randomAlphanumeric(32));
     }
 }

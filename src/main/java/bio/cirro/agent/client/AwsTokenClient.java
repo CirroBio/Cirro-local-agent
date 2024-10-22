@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.sts.StsClient;
 import java.time.Duration;
 
 @AllArgsConstructor
-public class TokenClient {
+public class AwsTokenClient {
     private static final int TOKEN_LIFETIME = (int) Duration.ofHours(1).getSeconds();
     private static final int MAX_ROLE_SESSION_NAME_LENGTH = 64;
     private final StsClient stsClient;
@@ -46,7 +46,7 @@ public class TokenClient {
         var bucketArn = Arn.builder()
                 .partition("aws")
                 .service(S3Client.SERVICE_NAME)
-                .resource(datasetS3Path.getBucket())
+                .resource(datasetS3Path.bucket())
                 .build()
                 .toString();
 
@@ -63,7 +63,7 @@ public class TokenClient {
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:PutObject")
                         .addAction("s3:DeleteObject")
-                        .addResource(String.format("%s/%s/*", bucketArn, datasetS3Path.getKey()))
+                        .addResource(String.format("%s/%s/*", bucketArn, datasetS3Path.key()))
                 )
                 .addStatement(b -> b
                         .sid("AllowRead")
