@@ -6,6 +6,7 @@ import bio.cirro.agent.messaging.ConnectionInfo;
 import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
 import bio.cirro.agent.messaging.dto.HeartbeatMessage;
 import bio.cirro.agent.models.SystemInfoResponse;
+import bio.cirro.agent.utils.FileUtils;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
@@ -26,10 +27,11 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Optional;
+
+import static bio.cirro.agent.execution.ExecutionCreateService.SUBMIT_SCRIPT;
 
 /**
  * Cirro Agent entry point.
@@ -178,14 +180,11 @@ public class AgentCommand implements Runnable {
             throw new AgentException("URL is required");
         }
 
-        try {
-            var workDirectory = agentConfig.getAbsoluteWorkDirectory();
-            if (!Files.isDirectory(workDirectory)) {
-                throw new AgentException("Working directory does not exist: " + workDirectory);
-            }
-            log.info("Using working directory: {}", workDirectory);
-        } catch (InvalidPathException e) {
-            throw new AgentException("Working directory invalid: " + agentConfig.getWorkDirectory());
+        FileUtils.validateDirectory(agentConfig.getAbsoluteWorkDirectory(), "Work");
+        FileUtils.validateDirectory(agentConfig.getAbsoluteSharedDirectory(), "Shared");
+        var submitScript = agentConfig.getAbsoluteSharedDirectory().resolve(SUBMIT_SCRIPT);
+        if (!Files.exists(submitScript)) {
+            throw new AgentException(String.format("Submit script (%s) not found", submitScript));
         }
     }
 

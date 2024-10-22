@@ -5,4 +5,4 @@ cirro:
     log-level: DEBUG
     work-directory: ~/cirro-agent-work
     watch-interval: 10
-    shared-directory: shared/
+    shared-directory: scripts/
