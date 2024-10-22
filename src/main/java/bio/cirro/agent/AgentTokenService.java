@@ -30,12 +30,16 @@ public class AgentTokenService {
     /**
      * Validate the token and return the execution ID
      */
-    public String validate(String token) {
+    public void validate(String token, String executionId) {
+        token = token.replace("Bearer ", "");
         var resp = JWT.require(algorithm)
                 .withIssuer(issuer)
                 .build()
                 .verify(token);
-        return resp.getSubject();
+        var executionIdFromToken = resp.getSubject();
+        if (!executionId.equals(executionIdFromToken)) {
+            throw new IllegalArgumentException("Invalid token");
+        }
     }
 }
 

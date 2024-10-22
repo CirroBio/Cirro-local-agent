@@ -42,10 +42,10 @@ public class MessageHandler {
         try {
             var execution = executionCreateService.create(runAnalysisCommandMessage);
             return RunAnalysisResponseMessage.builder()
-                    .output(execution.getOutput().stdout())
-                    .nativeJobId(execution.getOutput().localJobId())
-                    .status(Status.PENDING)
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
+                    .nativeJobId(execution.getOutput().localJobId())
+                    .output(execution.getOutput().stdout())
+                    .status(Status.PENDING)
                     .build();
         } catch (ExecutionException e) {
             var message = String.format("Error running analysis: %s", e.getMessage());

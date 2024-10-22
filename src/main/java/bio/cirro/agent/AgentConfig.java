@@ -4,10 +4,10 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.SecureRandom;
 import java.time.Duration;
 
 @ConfigurationProperties("cirro.agent")
@@ -32,7 +32,10 @@ public class AgentConfig {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
         this.absoluteScriptsDirectory = getAbsolutePath(scriptsDirectory);
         if (this.jwtSecret == null) {
-            this.jwtSecret = RandomStringUtils.randomAlphanumeric(16);
+            SecureRandom random = new SecureRandom(); // Compliant for security-sensitive use cases
+            var bytes = new byte[20];
+            random.nextBytes(bytes);
+            this.jwtSecret = new String(bytes);
         }
     }
 

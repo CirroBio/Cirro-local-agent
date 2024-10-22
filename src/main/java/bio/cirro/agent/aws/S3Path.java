@@ -1,4 +1,4 @@
-package bio.cirro.agent.utils;
+package bio.cirro.agent.aws;
 
 import java.net.URI;
 

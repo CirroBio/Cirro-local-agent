@@ -1,8 +1,8 @@
 package bio.cirro.agent.execution;
 
+import bio.cirro.agent.aws.S3Path;
 import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.models.Status;
-import bio.cirro.agent.utils.S3Path;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

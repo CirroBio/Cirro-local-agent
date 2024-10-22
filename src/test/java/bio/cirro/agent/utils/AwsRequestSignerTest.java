@@ -1,19 +1,20 @@
 package bio.cirro.agent.utils;
 
+import bio.cirro.agent.aws.AwsRequestSigner;
 import bio.cirro.agent.exception.AgentException;
 import io.micronaut.http.HttpRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AWSRequestSignerTest {
-    AWSRequestSigner awsRequestSigner;
+class AwsRequestSignerTest {
+    AwsRequestSigner awsRequestSigner;
 
     @BeforeEach
     void setUp() {
         System.clearProperty("aws.accessKeyId");
         System.clearProperty("aws.secretAccessKey");
-        awsRequestSigner = new AWSRequestSigner();
+        awsRequestSigner = new AwsRequestSigner();
     }
 
     @Test

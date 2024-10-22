@@ -1,4 +1,4 @@
-package bio.cirro.agent.models;
+package bio.cirro.agent.aws;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
@@ -14,7 +14,7 @@ import java.time.Instant;
 @Serdeable
 @Builder
 @Value
-public class AWSCredentials {
+public class AwsCredentials {
     @JsonProperty("Version")
     int version = 1;
 

@@ -1,9 +1,8 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
-import bio.cirro.agent.AgentTokenService;
+import bio.cirro.agent.aws.AwsCredentials;
 import bio.cirro.agent.aws.AwsTokenClient;
-import bio.cirro.agent.models.AWSCredentials;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -16,7 +15,6 @@ public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final AgentConfig agentConfig;
     private final StsClient stsClient;
-    private final AgentTokenService agentTokenService;
 
     public List<ExecutionDto> list() {
         return executionRepository.getAll().stream()
@@ -30,12 +28,11 @@ public class ExecutionService {
         executionRepository.remove(executionId);
     }
 
-    public AWSCredentials generateS3Credentials(String authorization) {
-        var executionId = agentTokenService.validate(authorization);
+    public AwsCredentials generateS3Credentials(String executionId) {
         var execution = executionRepository.get(executionId);
         var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
         var creds = tokenClient.generateCredentialsForExecution(execution);
-        return AWSCredentials.builder()
+        return AwsCredentials.builder()
                 .accessKeyId(creds.accessKeyId())
                 .secretAccessKey(creds.secretAccessKey())
                 .sessionToken(creds.sessionToken())

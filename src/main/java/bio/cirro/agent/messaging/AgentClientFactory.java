@@ -1,7 +1,6 @@
 package bio.cirro.agent.messaging;
 
-import bio.cirro.agent.MessageHandlerFunction;
-import bio.cirro.agent.utils.AWSRequestSigner;
+import bio.cirro.agent.aws.AwsRequestSigner;
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.websocket.WebSocketClient;
@@ -16,7 +15,7 @@ import reactor.core.publisher.Flux;
 @AllArgsConstructor
 public class AgentClientFactory {
     private final WebSocketClient webSocketClient;
-    private final AWSRequestSigner awsRequestSigner;
+    private final AwsRequestSigner awsRequestSigner;
 
     @Getter
     private AgentClient clientSocket;

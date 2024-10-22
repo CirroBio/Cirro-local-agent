@@ -1,4 +1,4 @@
-package bio.cirro.agent;
+package bio.cirro.agent.messaging;
 
 import bio.cirro.agent.messaging.dto.PortalMessage;
 

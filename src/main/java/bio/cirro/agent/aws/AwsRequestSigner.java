@@ -1,4 +1,4 @@
-package bio.cirro.agent.utils;
+package bio.cirro.agent.aws;
 
 import bio.cirro.agent.exception.AgentException;
 import io.micronaut.http.HttpRequest;
@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 @Singleton
 @Slf4j
 @AllArgsConstructor
-public class AWSRequestSigner {
+public class AwsRequestSigner {
     private static final String SERVICE_NAME = "execute-api";
 
     public MutableHttpRequest<String> signRequest(MutableHttpRequest<String> request, String region) {
