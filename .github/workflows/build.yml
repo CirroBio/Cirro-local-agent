@@ -20,6 +20,11 @@ jobs:
         distribution: temurin
         java-version: 21
 
+    - uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: 21
+        distribution: graalvm
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
