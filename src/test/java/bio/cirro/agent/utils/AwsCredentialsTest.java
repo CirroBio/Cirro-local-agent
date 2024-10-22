@@ -1,18 +1,19 @@
 package bio.cirro.agent.utils;
 
-import bio.cirro.agent.models.AWSCredentials;
+import bio.cirro.agent.aws.AwsCredentials;
 import io.micronaut.serde.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.time.Instant;
 
 @Slf4j
-public class AWSCredentialsTest {
+class AwsCredentialsTest {
     @Test
-    public void testGenerateCredentialsForProject() throws IOException {
-        var test = AWSCredentials.builder()
+    void testGenerateCredentialsForProject() throws IOException {
+        var test = AwsCredentials.builder()
                 .accessKeyId("access")
                 .secretAccessKey("secret")
                 .sessionToken("token")
@@ -20,6 +21,7 @@ public class AWSCredentialsTest {
                 .build();
         var mapper = ObjectMapper.getDefault();
         var str = mapper.writeValueAsString(test);
-        str.toString();
+        Assertions.assertTrue(str.contains("Version"));
+        Assertions.assertTrue(str.contains("AccessKeyId"));
     }
 }

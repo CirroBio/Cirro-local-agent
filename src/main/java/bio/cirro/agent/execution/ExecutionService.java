@@ -1,39 +1,42 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
-import bio.cirro.agent.dto.RunAnalysisCommandMessage;
-import bio.cirro.agent.models.AWSCredentials;
-import bio.cirro.agent.utils.TokenClient;
+import bio.cirro.agent.aws.AwsCredentials;
+import bio.cirro.agent.aws.AwsTokenClient;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
+import software.amazon.awssdk.services.sts.StsClient;
 
-import java.util.UUID;
+import java.util.List;
 
-@Singleton
 @AllArgsConstructor
+@Singleton
 public class ExecutionService {
-    private final AgentConfig agentConfig;
-    private final TokenClient tokenClient;
     private final ExecutionRepository executionRepository;
+    private final AgentConfig agentConfig;
+    private final StsClient stsClient;
 
-    public ExecutionSession createSession(RunAnalysisCommandMessage runAnalysisCommandMessage) {
-        var sessionId = UUID.randomUUID().toString();
-        var session = ExecutionSession.builder()
-                .sessionId(sessionId)
-                .datasetId(runAnalysisCommandMessage.getDatasetId())
-                .build();
-        executionRepository.add(session);
-        return session;
+    public List<ExecutionDto> list() {
+        return executionRepository.getAll().stream()
+                .map(ExecutionDto::from)
+                .toList();
     }
 
-    public AWSCredentials generateExecutionS3Credentials(String sessionId) {
-        var session = executionRepository.getSession(sessionId);
-        return tokenClient.generateCredentialsForExecutionSession(session);
-    }
-
-    public void completeExecution(String sessionId) {
+    public void completeExecution(String executionId) {
         // Handle stuff
         // Remove if everything is successful
-        executionRepository.removeSession(sessionId);
+        executionRepository.remove(executionId);
+    }
+
+    public AwsCredentials generateS3Credentials(String executionId) {
+        var execution = executionRepository.get(executionId);
+        var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
+        var creds = tokenClient.generateCredentialsForExecution(execution);
+        return AwsCredentials.builder()
+                .accessKeyId(creds.accessKeyId())
+                .secretAccessKey(creds.secretAccessKey())
+                .sessionToken(creds.sessionToken())
+                .expiration(creds.expirationTime().orElse(null))
+                .build();
     }
 }

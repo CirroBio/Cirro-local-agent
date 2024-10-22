@@ -2,6 +2,7 @@ package bio.cirro.agent.utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
 
 public class SystemUtils {
 
@@ -31,5 +32,11 @@ public class SystemUtils {
         } catch (UnknownHostException e) {
             return "127.0.0.1";
         }
+    }
+
+    public static byte[] generateRandomBytes(int length) {
+        byte[] bytes = new byte[length];
+        new SecureRandom().nextBytes(bytes);
+        return bytes;
     }
 }

@@ -1,5 +1,6 @@
 package bio.cirro.agent.dto;
 
+import bio.cirro.agent.messaging.dto.PortalMessage;
 import io.micronaut.serde.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;

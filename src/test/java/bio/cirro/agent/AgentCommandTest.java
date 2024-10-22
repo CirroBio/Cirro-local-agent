@@ -1,6 +1,6 @@
 package bio.cirro.agent;
 
-import bio.cirro.agent.socket.AgentClientFactory;
+import bio.cirro.agent.messaging.AgentClientFactory;
 import io.micronaut.configuration.picocli.PicocliRunner;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;

@@ -1,8 +1,9 @@
-package bio.cirro.agent.models;
+package bio.cirro.agent.aws;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Builder;
+import lombok.Value;
 
 import java.time.Instant;
 
@@ -12,19 +13,20 @@ import java.time.Instant;
  */
 @Serdeable
 @Builder
-public class AWSCredentials {
+@Value
+public class AwsCredentials {
     @JsonProperty("Version")
-    private static final int VERSION = 1;
+    int version = 1;
 
     @JsonProperty("AccessKeyId")
-    private String accessKeyId;
+    String accessKeyId;
 
     @JsonProperty("SecretAccessKey")
-    private String secretAccessKey;
+    String secretAccessKey;
 
     @JsonProperty("SessionToken")
-    private String sessionToken;
+    String sessionToken;
 
     @JsonProperty("Expiration")
-    private Instant expiration;
+    Instant expiration;
 }

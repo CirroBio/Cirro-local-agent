@@ -1,5 +1,6 @@
-package bio.cirro.agent.dto;
+package bio.cirro.agent.messaging.dto;
 
+import bio.cirro.agent.models.Status;
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -14,7 +15,7 @@ import lombok.Value;
 @Serdeable
 @Builder
 public class RunAnalysisResponseMessage extends PortalMessage {
-    String status;
+    Status status;
     String nativeJobId;
     String output;
     String datasetId;

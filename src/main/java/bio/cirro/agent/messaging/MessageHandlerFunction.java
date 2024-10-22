@@ -1,6 +1,6 @@
-package bio.cirro.agent;
+package bio.cirro.agent.messaging;
 
-import bio.cirro.agent.dto.PortalMessage;
+import bio.cirro.agent.messaging.dto.PortalMessage;
 
 import java.util.Optional;
 import java.util.function.Function;

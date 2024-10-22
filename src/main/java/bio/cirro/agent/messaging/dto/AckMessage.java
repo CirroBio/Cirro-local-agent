@@ -1,4 +1,4 @@
-package bio.cirro.agent.dto;
+package bio.cirro.agent.messaging.dto;
 
 import io.micronaut.serde.annotation.Serdeable;
 import lombok.EqualsAndHashCode;

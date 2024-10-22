@@ -1,4 +1,4 @@
-package bio.cirro.agent.socket;
+package bio.cirro.agent.messaging;
 
 import lombok.Builder;
 

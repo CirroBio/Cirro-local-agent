@@ -1,4 +1,4 @@
-package bio.cirro.agent.dto;
+package bio.cirro.agent.messaging.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

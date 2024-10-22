@@ -1,5 +1,6 @@
 package bio.cirro.agent;
 
+import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -14,22 +15,25 @@ import java.time.Duration;
 @Getter
 public class AgentConfig {
     private String url;
-    private String token;
     private String id;
     private int heartbeatInterval;
     private int watchInterval;
     private String logLevel;
     private String workDirectory;
-    private String scriptsDirectory;
+    private String sharedDirectory;
     private Path absoluteWorkDirectory;
-    private Path absoluteScriptsDirectory;
+    private Path absoluteSharedDirectory;
     private String version;
     private String fileAccessRoleArn;
+    private byte[] jwtSecret;
 
     @PostConstruct
     public void init() {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
-        this.absoluteScriptsDirectory = getAbsolutePath(scriptsDirectory);
+        this.absoluteSharedDirectory = getAbsolutePath(sharedDirectory);
+        if (this.jwtSecret == null) {
+            this.jwtSecret = SystemUtils.generateRandomBytes(20);
+        }
     }
 
     public Duration watchInterval() {
