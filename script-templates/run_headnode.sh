@@ -11,16 +11,14 @@ set -euo pipefail
 # Source the environment variables for this analysis
 source "${PW_ENVIRONMENT_FILE}"
 
-# If there is a headnode setup script provided, run it
-if [[ -f "${PW_SHARED_DIR}/setup_headnode.sh" ]]; then
-    echo "$(date) Running headnode setup script"
-    source "${PW_SHARED_DIR}/setup_headnode.sh"
-fi
-
 # Format the path to the local image, replacing special characters
 # e.g. HEADNODE_IMAGE=730335334008.dkr.ecr.us-west-2.amazonaws.com/cirro-headnode:slurm-agent
 IMAGE_NAME=$(echo "${PW_HEADNODE_IMAGE}" | tr '.' '_' | tr ':' '_' | tr '/' '_')
 LOCAL_IMAGE="${PW_SHARED_DIR}/headnode_images/${IMAGE_NAME}.sif"
+
+# Environment-specific setup
+APPTAINER_CACHEDIR="${PW_PROJECT_DIR}/apptainer"
+WORKER_PRIORITY=5
 
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"
@@ -41,5 +39,5 @@ apptainer run \
     --pwd "${PW_WORKING_DIR}" \
     --workdir "${TMPDIR}" \
     --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
-    --bind "${PW_SHARED_DIR}" \
+    --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
     "${LOCAL_IMAGE}"

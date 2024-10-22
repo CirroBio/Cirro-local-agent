@@ -65,12 +65,14 @@ You must set up the following scripts:
 
 - `submit_headnode.sh` (required)
    - This script is used to submit the headnode job to the local compute resource.
-- `nextflow.config` (optional)
-- `cromwell.conf` (optional)
+- `nextflow-override.config` (optional)
+- `cromwell-override.config` (optional)
 
 Depending on your environment, you may also need supplementary scripts to support the above scripts.
 
 We've included examples in the [`script-templates/`](./script-templates) directory for various runtime environments.
+
+If the job is executed on a different machine, you will need to ensure that these directories are shared between the machines, through a network share or a shared filesystem.
 
 ### Debugging
 
