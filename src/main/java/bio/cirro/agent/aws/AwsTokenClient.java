@@ -77,6 +77,7 @@ public class AwsTokenClient {
                         .addAction("ecr:GetAuthorizationToken")
                         .addAction("ecr:BatchCheckLayerAvailability")
                         .addAction("ecr:GetDownloadUrlForLayer")
+                        .addAction("ecr:BatchGetImage")
                         .addResource("*")
                 )
                 .build();
