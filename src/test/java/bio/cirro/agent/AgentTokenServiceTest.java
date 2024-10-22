@@ -28,13 +28,21 @@ class AgentTokenServiceTest {
         var payload = new String(java.util.Base64.getDecoder().decode(payloadBase64));
         Assertions.assertTrue(payload.contains(mockExecutionId));
         Assertions.assertTrue(payload.contains(MOCK_AGENT_ID));
-        var executionId = agentTokenService.validate(result);
-        Assertions.assertEquals(mockExecutionId, executionId);
+        Assertions.assertDoesNotThrow(() -> agentTokenService.validate(result, mockExecutionId));
+    }
+
+    @Test
+    void testVerifyBadExecutionId() {
+        var mockExecutionId = UUID.randomUUID().toString();
+        var differentId = UUID.randomUUID().toString();
+        var token = agentTokenService.generateForExecution(mockExecutionId);
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> agentTokenService.validate(token, differentId));
     }
 
     @Test
     void testVerifyBadToken() {
         Assertions.assertThrows(JWTVerificationException.class,
-                () -> agentTokenService.validate("bad-token"));
+                () -> agentTokenService.validate("bad-token", "1"));
     }
 }
