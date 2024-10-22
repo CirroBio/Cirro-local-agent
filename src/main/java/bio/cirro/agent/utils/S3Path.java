@@ -1,10 +1,7 @@
 package bio.cirro.agent.utils;
 
-import lombok.Getter;
-
 import java.net.URI;
 
-@Getter
 public record S3Path(String bucket, String key) {
 
     public String toString() {
