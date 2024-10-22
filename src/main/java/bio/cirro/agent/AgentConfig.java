@@ -1,6 +1,5 @@
 package bio.cirro.agent;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -26,11 +25,15 @@ public class AgentConfig {
     private Path absoluteScriptsDirectory;
     private String version;
     private String fileAccessRoleArn;
+    private String jwtSecret;
 
     @PostConstruct
     public void init() {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
         this.absoluteScriptsDirectory = getAbsolutePath(scriptsDirectory);
+        if (this.jwtSecret == null) {
+            this.jwtSecret = RandomStringUtils.randomAlphanumeric(16);
+        }
     }
 
     public Duration watchInterval() {
@@ -51,9 +54,5 @@ public class AgentConfig {
 
     public String getUserAgent() {
         return "Cirro Agent/" + version;
-    }
-
-    public Algorithm getJwtSigner() {
-        return Algorithm.HMAC256(RandomStringUtils.randomAlphanumeric(32));
     }
 }

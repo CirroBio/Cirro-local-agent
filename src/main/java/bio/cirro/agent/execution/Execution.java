@@ -1,6 +1,6 @@
 package bio.cirro.agent.execution;
 
-import bio.cirro.agent.dto.RunAnalysisCommandMessage;
+import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.models.Status;
 import bio.cirro.agent.utils.S3Path;
 import lombok.AllArgsConstructor;
@@ -21,19 +21,22 @@ import java.util.Optional;
 @Data
 @Builder
 @Slf4j
-public class ExecutionSession {
+public class Execution {
     private static final List<String> ALLOWED_ENV_PREFIXES = List.of("PW_", "CIRRO_");
 
-    private final String sessionId;
     private final Path workingDirectory;
     private final RunAnalysisCommandMessage messageData;
     private final Status status;
     private final Instant createdAt;
 
-    private ExecutionSessionOutput output;
+    private ExecutionStartOutput output;
 
     public String getDatasetId() {
         return messageData.getDatasetId();
+    }
+
+    public String getExecutionId() {
+        return getDatasetId();
     }
 
     public String getProjectId() {
@@ -73,7 +76,6 @@ public class ExecutionSession {
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
         environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
         environment.put("CIRRO_WORKING_DIR", workingDirectory.toString());
-        environment.put("CIRRO_SESSION_ID", sessionId);
         return new HashMap<>(environment);
     }
     public Path getAwsConfigPath() {

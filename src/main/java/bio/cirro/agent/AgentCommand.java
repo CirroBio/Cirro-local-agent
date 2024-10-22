@@ -1,11 +1,11 @@
 package bio.cirro.agent;
 
-import bio.cirro.agent.dto.AgentRegisterMessage;
-import bio.cirro.agent.dto.HeartbeatMessage;
 import bio.cirro.agent.exception.AgentException;
+import bio.cirro.agent.messaging.AgentClientFactory;
+import bio.cirro.agent.messaging.ConnectionInfo;
+import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
+import bio.cirro.agent.messaging.dto.HeartbeatMessage;
 import bio.cirro.agent.models.SystemInfoResponse;
-import bio.cirro.agent.socket.AgentClientFactory;
-import bio.cirro.agent.socket.ConnectionInfo;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;

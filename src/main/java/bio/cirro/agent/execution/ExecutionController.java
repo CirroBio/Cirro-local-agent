@@ -14,22 +14,21 @@ import java.util.List;
 @Controller("/executions")
 @AllArgsConstructor
 public class ExecutionController {
-    private final ExecutionCreateService executionCreateService;
-    private final ExecutionSessionService executionSessionService;
+    private final ExecutionService executionService;
 
     @Get
-    public HttpResponse<List<ExecutionSessionDto>> list() {
-        return HttpResponse.ok(executionSessionService.list());
+    public HttpResponse<List<ExecutionDto>> list() {
+        return HttpResponse.ok(executionService.list());
     }
 
     @Post("/{executionId}/s3-token")
     public HttpResponse<AWSCredentials> generateS3Credentials(@PathVariable String executionId) {
-        return HttpResponse.ok(executionSessionService.generateS3Credentials(executionId));
+        return HttpResponse.ok(executionService.generateS3Credentials(executionId));
     }
 
     @Put("/{executionId}/complete")
     public HttpResponse<Void> completeExecution(@PathVariable String executionId) {
-        executionSessionService.completeExecution(executionId);
+        executionService.completeExecution(executionId);
         return HttpResponse.ok();
     }
 }

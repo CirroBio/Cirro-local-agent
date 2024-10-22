@@ -1,11 +1,11 @@
 package bio.cirro.agent;
 
-import bio.cirro.agent.dto.PortalMessage;
-import bio.cirro.agent.dto.RunAnalysisCommandMessage;
-import bio.cirro.agent.dto.RunAnalysisResponseMessage;
-import bio.cirro.agent.dto.UnknownMessage;
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.execution.ExecutionCreateService;
+import bio.cirro.agent.messaging.dto.PortalMessage;
+import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
+import bio.cirro.agent.messaging.dto.RunAnalysisResponseMessage;
+import bio.cirro.agent.messaging.dto.UnknownMessage;
 import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
@@ -40,7 +40,7 @@ public class MessageHandler {
 
     private RunAnalysisResponseMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         try {
-            var execution = executionCreateService.createSession(runAnalysisCommandMessage);
+            var execution = executionCreateService.create(runAnalysisCommandMessage);
             return RunAnalysisResponseMessage.builder()
                     .output(execution.getOutput().stdout())
                     .nativeJobId(execution.getOutput().localJobId())

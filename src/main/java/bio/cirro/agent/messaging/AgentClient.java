@@ -1,8 +1,8 @@
-package bio.cirro.agent.socket;
+package bio.cirro.agent.messaging;
 
 import bio.cirro.agent.MessageHandlerFunction;
-import bio.cirro.agent.dto.PortalMessage;
-import bio.cirro.agent.dto.UnknownMessage;
+import bio.cirro.agent.messaging.dto.PortalMessage;
+import bio.cirro.agent.messaging.dto.UnknownMessage;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.websocket.CloseReason;
 import io.micronaut.websocket.WebSocketSession;

@@ -7,8 +7,8 @@ if [ -z "$CIRRO_AGENT_ENDPOINT" ]; then
   exit 1
 fi
 
-if [ -z "$CIRRO_SESSION_ID" ]; then
-  echo "CIRRO_SESSION_ID is not set"
+if [ -z "$CIRRO_EXECUTION_ID" ]; then
+  echo "CIRRO_EXECUTION_ID is not set"
   exit 1
 fi
 
@@ -17,6 +17,6 @@ if [ -z "$CIRRO_AGENT_TOKEN" ]; then
   exit 1
 fi
 
-curl "${CIRRO_AGENT_ENDPOINT}/executions/${CIRRO_SESSION_ID}/s3-token" \
+curl "${CIRRO_AGENT_ENDPOINT}/executions/${CIRRO_EXECUTION_ID}/s3-token" \
   -X POST \
   -H "Authorization: Bearer ${CIRRO_AGENT_TOKEN}"

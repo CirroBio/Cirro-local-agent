@@ -1,4 +1,4 @@
-package bio.cirro.agent.dto;
+package bio.cirro.agent.messaging.dto;
 
 import bio.cirro.agent.models.Code;
 import io.micronaut.serde.annotation.Serdeable;

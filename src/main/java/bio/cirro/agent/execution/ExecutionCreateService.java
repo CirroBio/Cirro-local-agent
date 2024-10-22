@@ -2,8 +2,8 @@ package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.AgentTokenService;
-import bio.cirro.agent.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.exception.ExecutionException;
+import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.models.Status;
 import bio.cirro.agent.utils.FileUtils;
 import jakarta.inject.Singleton;
@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -32,39 +31,41 @@ public class ExecutionCreateService {
     private final AgentTokenService agentTokenService;
     private final ExecutionRepository executionRepository;
 
-    public ExecutionSession createSession(RunAnalysisCommandMessage runAnalysisCommandMessage) {
-        var sessionId = UUID.randomUUID().toString();
-        var workingDirectory = Paths.get(agentConfig.getAbsoluteWorkDirectory().toString(), sessionId);
+    public Execution create(RunAnalysisCommandMessage runAnalysisCommandMessage) {
+        var workingDirectory = Paths.get(
+                agentConfig.getAbsoluteWorkDirectory().toString(),
+                runAnalysisCommandMessage.getDatasetId()
+        );
 
-        var session = ExecutionSession.builder()
-                .sessionId(sessionId)
+        var execution = Execution.builder()
                 .messageData(runAnalysisCommandMessage)
                 .workingDirectory(workingDirectory)
                 .status(Status.PENDING)
                 .createdAt(Instant.now())
                 .build();
-        executionRepository.add(session);
+        executionRepository.add(execution);
 
-        var token = agentTokenService.generateForSession(sessionId);
+        var token = agentTokenService.generateForExecution(execution.getDatasetId());
         try {
             // Set up working directory
             Files.createDirectories(workingDirectory);
-            writeEnvironment(session, token);
-            writeAwsConfig(session);
+            writeEnvironment(execution, token);
+            writeAwsConfig(execution);
 
-            var executionOutput = startExecution(session);
-            session.setOutput(executionOutput);
+            var executionOutput = startExecution(execution);
+            execution.setOutput(executionOutput);
         } catch (Exception ex) {
-            executionRepository.removeSession(sessionId);
+            executionRepository.remove(execution.getExecutionId());
             throw new ExecutionException("Failed to start execution", ex);
         }
-        return session;
+        return execution;
     }
 
-    private void writeEnvironment(ExecutionSession session, String token) {
-        var environmentVariables = session.getEnvironment();
+    private void writeEnvironment(Execution execution, String token) {
+        var environmentVariables = execution.getEnvironment();
         environmentVariables.put("CIRRO_TOKEN", token);
         environmentVariables.put("CIRRO_AGENT_ENDPOINT", "http://localhost:8080");
+        environmentVariables.put("CIRRO_EXECUTION_ID", execution.getDatasetId());
 
         var environmentSb = new StringBuilder();
         environmentSb.append("#!/bin/bash\n");
@@ -72,7 +73,7 @@ public class ExecutionCreateService {
             environmentSb.append(String.format("export %s=%s%n", entry.getKey(), entry.getValue()));
         }
 
-        var environmentFile = session.getEnvironmentPath();
+        var environmentFile = execution.getEnvironmentPath();
         try {
             FileUtils.writeScript(environmentFile, environmentSb.toString());
         } catch (IOException e) {
@@ -80,14 +81,14 @@ public class ExecutionCreateService {
         }
     }
 
-    private void writeAwsConfig(ExecutionSession session) {
+    private void writeAwsConfig(Execution execution) {
         // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
-        awsConfigTemplate = awsConfigTemplate.replace("%%SESSION_ID%%", session.getSessionId());
+        awsConfigTemplate = awsConfigTemplate.replace("%%EXECUTION_ID%%", execution.getDatasetId());
         awsConfigTemplate = awsConfigTemplate.replace("%%AGENT_URL%%", "");
 
         try {
-            Files.writeString(session.getAwsConfigPath(), awsConfigTemplate);
+            Files.writeString(execution.getAwsConfigPath(), awsConfigTemplate);
         } catch (IOException e) {
             throw new ExecutionException("Failed to write AWS config", e);
         }
@@ -95,13 +96,13 @@ public class ExecutionCreateService {
         // Write credential helper
         var credentialHelperScript = FileUtils.getResourceAsString("credential-helper.sh");
         try {
-            FileUtils.writeScript(session.getCredentialsHelperPath(), credentialHelperScript);
+            FileUtils.writeScript(execution.getCredentialsHelperPath(), credentialHelperScript);
         } catch (IOException e) {
             throw new ExecutionException("Failed to write credential helper", e);
         }
     }
 
-    private ExecutionSessionOutput startExecution(ExecutionSession session) {
+    private ExecutionStartOutput startExecution(Execution execution) {
         try {
             Path launchScript = Paths.get(agentConfig.getAbsoluteScriptsDirectory().toString(), "submit_headnode.sh");
             if (!launchScript.toFile().exists()) {
@@ -110,12 +111,12 @@ public class ExecutionCreateService {
             }
             log.debug("Using launch script: {}", launchScript);
             var headnodeLaunchProcessBuilder = new ProcessBuilder()
-                    .directory(session.getWorkingDirectory().toFile())
+                    .directory(execution.getWorkingDirectory().toFile())
                     .command("sh", launchScript.toAbsolutePath().toString())
                     .redirectErrorStream(true);
             // Set environment variables
             var env = headnodeLaunchProcessBuilder.environment();
-            env.put("WORKING_DIR", session.getWorkingDirectory().toString());
+            env.put("WORKING_DIR", execution.getWorkingDirectory().toString());
 
             var headnodeLaunchProcess = headnodeLaunchProcessBuilder.start();
 
@@ -142,7 +143,7 @@ public class ExecutionCreateService {
                 throw new ExecutionException("Execution failed: " + processOutput);
             }
             headnodeLaunchProcess.destroy();
-            return new ExecutionSessionOutput(processOutput, jobId);
+            return new ExecutionStartOutput(processOutput, jobId);
         } catch (IOException e) {
             throw new ExecutionException(e.getMessage());
         } catch (InterruptedException e) {

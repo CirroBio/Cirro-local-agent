@@ -1,4 +1,4 @@
-package bio.cirro.agent.socket;
+package bio.cirro.agent.messaging;
 
 import bio.cirro.agent.MessageHandlerFunction;
 import bio.cirro.agent.utils.AWSRequestSigner;

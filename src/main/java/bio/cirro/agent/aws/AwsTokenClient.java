@@ -1,6 +1,6 @@
-package bio.cirro.agent.client;
+package bio.cirro.agent.aws;
 
-import bio.cirro.agent.execution.ExecutionSession;
+import bio.cirro.agent.execution.Execution;
 import lombok.AllArgsConstructor;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -19,14 +19,14 @@ public class AwsTokenClient {
     private final String roleArn;
     private final String agentId;
 
-    public AwsSessionCredentials generateCredentialsForExecutionSession(ExecutionSession executionSession) {
-        var sessionPolicy = createPolicyForExecutionSession(executionSession);
+    public AwsSessionCredentials generateCredentialsForExecution(Execution execution) {
+        var sessionPolicy = createPolicyForExecution(execution);
         var response = stsClient.assumeRole(
                 r -> r.roleArn(roleArn)
-                        .roleSessionName(generateRoleSessionName(executionSession.getUsername()))
+                        .roleSessionName(generateRoleSessionName(execution.getUsername()))
                         .policy(sessionPolicy.toJson())
                         .durationSeconds(TOKEN_LIFETIME)
-                        .externalId(executionSession.getProjectId())
+                        .externalId(execution.getProjectId())
         );
         return AwsSessionCredentials.builder()
                 .accessKeyId(response.credentials().accessKeyId())
@@ -41,8 +41,8 @@ public class AwsTokenClient {
         return roleSessionName.substring(0, Math.min(roleSessionName.length(), MAX_ROLE_SESSION_NAME_LENGTH));
     }
 
-    private IamPolicy createPolicyForExecutionSession(ExecutionSession executionSession) {
-        var datasetS3Path = executionSession.getDatasetS3Path();
+    private IamPolicy createPolicyForExecution(Execution execution) {
+        var datasetS3Path = execution.getDatasetS3Path();
         var bucketArn = Arn.builder()
                 .partition("aws")
                 .service(S3Client.SERVICE_NAME)

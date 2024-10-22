@@ -1,4 +1,4 @@
-package bio.cirro.agent.client;
+package bio.cirro.agent.aws;
 
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;

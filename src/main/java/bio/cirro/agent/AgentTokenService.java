@@ -4,35 +4,38 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import jakarta.inject.Singleton;
 
+/**
+ * Service for generating and validating tokens given to the running jobs
+ */
 @Singleton
 public class AgentTokenService {
     private final Algorithm algorithm;
     private final String issuer;
 
     public AgentTokenService(AgentConfig agentConfig) {
-        this.algorithm = agentConfig.getJwtSigner();
+        this.algorithm = Algorithm.HMAC256(agentConfig.getJwtSecret());
         this.issuer = agentConfig.getId();
     }
 
     /**
-     * Generate a token for the given session ID
+     * Generate a token for the given execution ID
      */
-    public String generateForSession(String sessionId) {
+    public String generateForExecution(String executionId) {
         return JWT.create()
                 .withIssuer(issuer)
-                .withClaim("sub", sessionId)
+                .withSubject(executionId)
                 .sign(algorithm);
     }
 
     /**
-     * Validate the token and return the session ID
+     * Validate the token and return the execution ID
      */
     public String validate(String token) {
         var resp = JWT.require(algorithm)
                 .withIssuer(issuer)
                 .build()
                 .verify(token);
-        return resp.getClaim("sub").asString();
+        return resp.getSubject();
     }
 }
 

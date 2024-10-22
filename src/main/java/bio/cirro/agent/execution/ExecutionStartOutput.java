@@ -1,6 +1,6 @@
 package bio.cirro.agent.execution;
 
-public record ExecutionSessionOutput(
+public record ExecutionStartOutput(
         String stdout,
         String localJobId
 ) {

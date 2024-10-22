@@ -2,7 +2,7 @@ package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.AgentTokenService;
-import bio.cirro.agent.client.AwsTokenClient;
+import bio.cirro.agent.aws.AwsTokenClient;
 import bio.cirro.agent.models.AWSCredentials;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
@@ -12,29 +12,29 @@ import java.util.List;
 
 @AllArgsConstructor
 @Singleton
-public class ExecutionSessionService {
+public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final AgentConfig agentConfig;
     private final StsClient stsClient;
     private final AgentTokenService agentTokenService;
 
-    public List<ExecutionSessionDto> list() {
+    public List<ExecutionDto> list() {
         return executionRepository.getAll().stream()
-                .map(ExecutionSessionDto::from)
+                .map(ExecutionDto::from)
                 .toList();
     }
 
-    public void completeExecution(String sessionId) {
+    public void completeExecution(String executionId) {
         // Handle stuff
         // Remove if everything is successful
-        executionRepository.removeSession(sessionId);
+        executionRepository.remove(executionId);
     }
 
     public AWSCredentials generateS3Credentials(String authorization) {
-        var sessionId = agentTokenService.validate(authorization);
-        var session = executionRepository.getSession(sessionId);
-        var tokenClient = new AwsTokenClient(stsClient, session.getFileAccessRoleArn(), agentConfig.getId());
-        var creds = tokenClient.generateCredentialsForExecutionSession(session);
+        var executionId = agentTokenService.validate(authorization);
+        var execution = executionRepository.get(executionId);
+        var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
+        var creds = tokenClient.generateCredentialsForExecution(execution);
         return AWSCredentials.builder()
                 .accessKeyId(creds.accessKeyId())
                 .secretAccessKey(creds.secretAccessKey())
