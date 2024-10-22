@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -28,4 +29,3 @@ jobs:
       with:
         name: agent-jar
         path: build/libs/*.jar
-

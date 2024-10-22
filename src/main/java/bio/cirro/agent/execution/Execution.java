@@ -83,15 +83,7 @@ public class Execution {
         // Add any variables injected by Cirro
         var environment = Optional.ofNullable(messageData.getEnvironment())
                 .orElse(new HashMap<>());
-        for (var variable : environment.entrySet()) {
-            // Check if variable is allowed to be set
-            if (ALLOWED_ENV_PREFIXES.stream().noneMatch(variable.getKey()::startsWith)) {
-                log.warn("Setting of environment variable {} not allowed", variable.getKey());
-                continue;
-            }
-
-            environment.put(variable.getKey(), StringEscapeUtils.escapeXSI(variable.getValue()));
-        }
+        environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
         environment.put("PW_PROJECT_DIR", getProjectRoot().toString());
         environment.put("PW_WORKING_DIR", getWorkingDirectory().toString());
         environment.put("PW_SHARED_DIR", getAgentSharedDirectory().toString());

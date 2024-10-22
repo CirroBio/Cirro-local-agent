@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 @Slf4j
 public class ExecutionCreateService {
+    public static final String SUBMIT_SCRIPT = "submit_headnode.sh";
     private static final Pattern JOB_ID_REGEX = Pattern.compile("^\\d+$");
 
     private final AgentConfig agentConfig;
@@ -98,7 +99,7 @@ public class ExecutionCreateService {
 
     private ExecutionStartOutput startExecution(Execution execution) {
         try {
-            Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), "submit_headnode.sh");
+            Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), SUBMIT_SCRIPT);
             if (!launchScript.toFile().exists()) {
                 throw new ExecutionException("Launch script not found", null);
                 // TODO: Write default launch script?
@@ -106,7 +107,7 @@ public class ExecutionCreateService {
             log.debug("Using launch script: {}", launchScript);
             var headnodeLaunchProcessBuilder = new ProcessBuilder()
                     .directory(execution.getWorkingDirectory().toFile())
-                    .command("sh", launchScript.toAbsolutePath().toString())
+                    .command(launchScript.toAbsolutePath().toString())
                     .redirectErrorStream(true);
             // Set environment variables needed by the launch script
             var env = headnodeLaunchProcessBuilder.environment();
