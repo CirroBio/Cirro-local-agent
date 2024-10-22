@@ -7,4 +7,4 @@ cirro:
     log-level: INFO
     work-directory: work/
     version: 0.1.0
-    scripts-directory: scripts/
+    shared-directory: shared/

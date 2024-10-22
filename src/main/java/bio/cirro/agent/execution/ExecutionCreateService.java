@@ -34,14 +34,10 @@ public class ExecutionCreateService {
     private final EmbeddedServer embeddedServer;
 
     public Execution create(RunAnalysisCommandMessage runAnalysisCommandMessage) {
-        var workingDirectory = Paths.get(
-                agentConfig.getAbsoluteWorkDirectory().toString(),
-                runAnalysisCommandMessage.getDatasetId()
-        );
-
         var execution = Execution.builder()
                 .messageData(runAnalysisCommandMessage)
-                .workingDirectory(workingDirectory)
+                .agentWorkingDirectory(agentConfig.getAbsoluteWorkDirectory())
+                .agentSharedDirectory(agentConfig.getAbsoluteSharedDirectory())
                 .status(Status.PENDING)
                 .createdAt(Instant.now())
                 .build();
@@ -50,7 +46,7 @@ public class ExecutionCreateService {
         var token = agentTokenService.generateForExecution(execution.getDatasetId());
         try {
             // Set up working directory
-            Files.createDirectories(workingDirectory);
+            Files.createDirectories(execution.getWorkingDirectory());
             writeEnvironment(execution, token);
             writeAwsConfig(execution);
 
@@ -102,7 +98,7 @@ public class ExecutionCreateService {
 
     private ExecutionStartOutput startExecution(Execution execution) {
         try {
-            Path launchScript = Paths.get(agentConfig.getAbsoluteScriptsDirectory().toString(), "submit_headnode.sh");
+            Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), "submit_headnode.sh");
             if (!launchScript.toFile().exists()) {
                 throw new ExecutionException("Launch script not found", null);
                 // TODO: Write default launch script?
@@ -112,9 +108,9 @@ public class ExecutionCreateService {
                     .directory(execution.getWorkingDirectory().toFile())
                     .command("sh", launchScript.toAbsolutePath().toString())
                     .redirectErrorStream(true);
-            // Set environment variables
+            // Set environment variables needed by the launch script
             var env = headnodeLaunchProcessBuilder.environment();
-            env.put("WORKING_DIR", execution.getWorkingDirectory().toString());
+            env.put("PW_ENVIRONMENT_FILE", execution.getEnvironmentPath().toString());
 
             var headnodeLaunchProcess = headnodeLaunchProcessBuilder.start();
 

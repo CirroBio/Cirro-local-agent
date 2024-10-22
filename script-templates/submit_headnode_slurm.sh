@@ -6,9 +6,9 @@ set -euo pipefail
 
 # Required Environment Variables:
 
-# - CIRRO_AGENT_WORK_DIRECTORY: The root directory for all working files used by the agent
-# - PW_PROJECT: The unique identifier for the project
-# - PW_DATASET: The unique identifier for the dataset within the project
+# - PW_WORKING_DIR: The directory where this analysis is being run
+# - PW_SHARED_DIR: The directory for all shared scripts used by the agent
+# - PW_ENVIRONMENT_FILE: The path to the environment file for this analysis
 # - HEADNODE_NAME: The string used to label the headnode job on the cluster (e.g. the dataset name)
 # - HEADNODE_ACCOUNTING: The accounting string to use for the headnode job
 # - HEADNODE_JOB_QUEUE: The partition to use for the headnode job
@@ -19,23 +19,19 @@ set -euo pipefail
 # - HEADNODE_MEM: The amount of memory to use for the headnode job (e.g. 8G)
 # - HEADNODE_PRIORITY: The priority to use for the headnode job
 
-# Raise an error if the PW_DATASET variable is empty or not set
-[[ -z "${PW_DATASET}" ]] && exit 1
-
-# Internal environment variables
-DATASET_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PW_PROJECT}/datasets/${PW_DATASET}"
+# Source the environment variables for this analysis
+source "${PW_ENVIRONMENT_FILE}"
 
 # Start the job
-cd ${DATASET_DIR}
-echo "Running analysis from ${DATASET_DIR}"
+echo "Running analysis from $(pwd)"
 sbatch \
     --error=process.err \
     --output=process.out \
     --job-name="${HEADNODE_NAME}" \
     --account="${HEADNODE_ACCOUNTING}" \
     --partition="${HEADNODE_JOB_QUEUE}" \
-    --cpus-per-task=${HEADNODE_CPUS:-4} \
+    --cpus-per-task="${HEADNODE_CPUS:-4}" \
     --mem="${HEADNODE_MEM:-8G}" \
     --priority="${HEADNODE_PRIORITY:-10}" \
     --parsable \
-    ${DATASET_DIR}/run_headnode.sh
+    "${PW_SHARED_DIR}/run_headnode.sh"

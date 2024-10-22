@@ -2,37 +2,33 @@
 set -euo pipefail
 
 # Required Environment Variables:
-# - CIRRO_AGENT_WORK_DIRECTORY: The root directory for all working files used by the agent
-# - PW_PROJECT: The unique identifier for the project
-# - PW_DATASET: The unique identifier for the dataset
-# - HEADNODE_IMAGE: The image to pull
+# - PW_WORKING_DIR: The directory where this analysis is being run
+# - PW_SHARED_DIR: The directory for all shared scripts used by the agent
+# - PW_ENVIRONMENT_FILE: The path to the environment file for this analysis
+# - PW_PROJECT_DIR: The unique identifier for the project
+# - PW_HEADNODE_IMAGE: The image to pull
 
 # Source the environment variables for this analysis
-source env.list
+source "${PW_ENVIRONMENT_FILE}"
 
 # If there is a headnode setup script provided, run it
-if [[ -f "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh" ]]; then
+if [[ -f "${PW_SHARED_DIR}/setup_headnode.sh" ]]; then
     echo "$(date) Running headnode setup script"
-    source "${CIRRO_AGENT_WORK_DIRECTORY}/helpers/setup_headnode.sh"
+    source "${PW_SHARED_DIR}/setup_headnode.sh"
 fi
-
-# Internal environment variables
-# - PROJECT_DIR: The directory used for all local files (scoped to this particular project)
-PROJECT_DIR="${CIRRO_AGENT_WORK_DIRECTORY}/projects/${PW_PROJECT}"
-# - DATASET_DIR: The directory used for executing this particular dataset
-DATASET_DIR="${PROJECT_DIR}/datasets/${PW_DATASET}"
 
 # Format the path to the local image, replacing special characters
 # e.g. HEADNODE_IMAGE=730335334008.dkr.ecr.us-west-2.amazonaws.com/cirro-headnode:slurm-agent
-LOCAL_IMAGE="${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images/$(echo ${HEADNODE_IMAGE} | tr '.' '_' | tr ':' '_' | tr '/' '_').sif"
+IMAGE_NAME=$(echo "${PW_HEADNODE_IMAGE}" | tr '.' '_' | tr ':' '_' | tr '/' '_')
+LOCAL_IMAGE="${PW_SHARED_DIR}/headnode_images/${IMAGE_NAME}.sif"
 
 # Pull the headnode image using apptainer
-mkdir -p "${CIRRO_AGENT_WORK_DIRECTORY}/headnode_images"
-bash apptainer_pull.sh "${HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
+mkdir -p "${PW_SHARED_DIR}/headnode_images"
+bash apptainer_pull.sh "${PW_HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
 
 echo "$(date) Running headnode image: ${LOCAL_IMAGE}"
-echo "$(date) Project directory: ${PROJECT_DIR}"
-echo "$(date) Dataset directory: ${DATASET_DIR}"
+echo "$(date) Project directory: ${PW_PROJECT_DIR}"
+echo "$(date) Dataset directory (working): ${PW_WORKING_DIR}"
 echo "$(date) Temporary directory: ${TMPDIR}"
 
 mkdir -p "${TMPDIR}/.nextflow"
@@ -40,10 +36,10 @@ mkdir -p "${TMPDIR}/.nextflow"
 # Run the headnode image
 apptainer run \
     --containall \
-    --bind "${PROJECT_DIR}" \
-    --env-file env.list \
-    --pwd "${DATASET_DIR}" \
+    --bind "${PW_PROJECT_DIR}" \
+    --env-file "${PW_ENVIRONMENT_FILE}" \
+    --pwd "${PW_WORKING_DIR}" \
     --workdir "${TMPDIR}" \
     --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
-    "${LOCAL_IMAGE}" \
-    bash /opt/bin/entrypoint.sh
+    --bind "${PW_SHARED_DIR}" \
+    "${LOCAL_IMAGE}"
