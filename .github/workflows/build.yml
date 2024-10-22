@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,11 +22,17 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Run build with Gradle Wrapper
-      run: ./gradlew shadowJar
+      run: ./gradlew shadowJar nativeCompile
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: agent-jar
         path: build/libs/*.jar
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: agent-native
+        path: build/native/nativeCompile/cirro-agent*
 
