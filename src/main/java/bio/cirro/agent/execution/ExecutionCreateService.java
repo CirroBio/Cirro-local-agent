@@ -89,7 +89,7 @@ public class ExecutionCreateService {
         }
 
         // Write credential helper
-        var credentialHelperScript = FileUtils.getResourceAsString("credential-helper.sh");
+        var credentialHelperScript = FileUtils.getResourceAsString("credentials-helper.sh");
         try {
             FileUtils.writeScript(execution.getCredentialsHelperPath(), credentialHelperScript);
         } catch (IOException e) {
