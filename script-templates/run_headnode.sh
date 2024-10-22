@@ -16,9 +16,9 @@ source "${PW_ENVIRONMENT_FILE}"
 IMAGE_NAME=$(echo "${PW_HEADNODE_IMAGE}" | tr '.' '_' | tr ':' '_' | tr '/' '_')
 LOCAL_IMAGE="${PW_SHARED_DIR}/headnode_images/${IMAGE_NAME}.sif"
 
-# Environment-specific setup
-APPTAINER_CACHEDIR="${PW_PROJECT_DIR}/apptainer"
-WORKER_PRIORITY=5
+# Environment-specific setup to be passed into the headnode
+export APPTAINER_CACHEDIR="${PW_PROJECT_DIR}/apptainer"
+export WORKER_PRIORITY=5
 
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"

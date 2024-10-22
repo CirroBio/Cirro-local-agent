@@ -47,11 +47,11 @@ REGION=$(echo "${HEADNODE_IMAGE}" | cut -d'.' -f4)
 
 # Log in to the AWS ECR
 echo "$(date) Logging in to AWS ECR registry for ${REGION} region and account ID ${ACCOUNT_ID}"
-aws ecr get-login-password --region ${REGION} | \
+aws ecr get-login-password --region "${REGION}" | \
     apptainer remote login \
         --password-stdin \
         --username AWS \
-        docker://${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com
+        "docker://${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 
 echo "$(date) Pulling image: ${HEADNODE_IMAGE}"
 apptainer pull "${LOCAL_IMAGE}" "docker://${HEADNODE_IMAGE}"
