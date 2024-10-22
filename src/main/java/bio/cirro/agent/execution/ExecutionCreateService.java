@@ -107,7 +107,7 @@ public class ExecutionCreateService {
             log.debug("Using launch script: {}", launchScript);
             var headnodeLaunchProcessBuilder = new ProcessBuilder()
                     .directory(execution.getWorkingDirectory().toFile())
-                    .command("sh", launchScript.toAbsolutePath().toString())
+                    .command(launchScript.toAbsolutePath().toString())
                     .redirectErrorStream(true);
             // Set environment variables needed by the launch script
             var env = headnodeLaunchProcessBuilder.environment();
