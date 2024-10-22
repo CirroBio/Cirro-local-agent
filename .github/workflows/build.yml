@@ -1,4 +1,4 @@
-name: Build
+name: Build and Upload Artifact
 
 on:
   push:
@@ -27,5 +27,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: agent-jar
-        path: build/libs/agent-0.1.0-all.jar
+        path: build/libs/agent-0.1-all.jar
 
