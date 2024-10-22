@@ -14,7 +14,7 @@ class AgentTokenServiceTest {
     @BeforeEach
     void setUp() {
         AgentConfig agentConfig = new AgentConfig();
-        agentConfig.setJwtSecret("secret");
+        agentConfig.setJwtSecret("secret".getBytes());
         agentConfig.setId(MOCK_AGENT_ID);
         agentTokenService = new AgentTokenService(agentConfig);
     }

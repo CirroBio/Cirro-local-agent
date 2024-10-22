@@ -6,6 +6,7 @@ import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.models.Status;
 import bio.cirro.agent.utils.FileUtils;
+import io.micronaut.runtime.server.EmbeddedServer;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class ExecutionCreateService {
     private final AgentConfig agentConfig;
     private final AgentTokenService agentTokenService;
     private final ExecutionRepository executionRepository;
+    private final EmbeddedServer embeddedServer;
 
     public Execution create(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         var workingDirectory = Paths.get(
@@ -62,10 +64,8 @@ public class ExecutionCreateService {
     }
 
     private void writeEnvironment(Execution execution, String token) {
-        var environmentVariables = execution.getEnvironment();
-        environmentVariables.put("CIRRO_TOKEN", token);
-        environmentVariables.put("CIRRO_AGENT_ENDPOINT", "http://localhost:8080");
-        environmentVariables.put("CIRRO_EXECUTION_ID", execution.getDatasetId());
+        var agentEndpoint = embeddedServer.getURI().toString();
+        var environmentVariables = execution.getEnvironment(token, agentEndpoint);
 
         var environmentSb = new StringBuilder();
         environmentSb.append("#!/bin/bash\n");
@@ -84,8 +84,6 @@ public class ExecutionCreateService {
     private void writeAwsConfig(Execution execution) {
         // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
-        awsConfigTemplate = awsConfigTemplate.replace("%%EXECUTION_ID%%", execution.getDatasetId());
-        awsConfigTemplate = awsConfigTemplate.replace("%%AGENT_URL%%", "");
 
         try {
             Files.writeString(execution.getAwsConfigPath(), awsConfigTemplate);

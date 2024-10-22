@@ -1,5 +1,6 @@
 package bio.cirro.agent;
 
+import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -7,7 +8,6 @@ import lombok.Setter;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.SecureRandom;
 import java.time.Duration;
 
 @ConfigurationProperties("cirro.agent")
@@ -25,17 +25,14 @@ public class AgentConfig {
     private Path absoluteScriptsDirectory;
     private String version;
     private String fileAccessRoleArn;
-    private String jwtSecret;
+    private byte[] jwtSecret;
 
     @PostConstruct
     public void init() {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
         this.absoluteScriptsDirectory = getAbsolutePath(scriptsDirectory);
         if (this.jwtSecret == null) {
-            SecureRandom random = new SecureRandom(); // Compliant for security-sensitive use cases
-            var bytes = new byte[20];
-            random.nextBytes(bytes);
-            this.jwtSecret = new String(bytes);
+            this.jwtSecret = SystemUtils.generateRandomBytes(20);
         }
     }
 

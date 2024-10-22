@@ -59,7 +59,7 @@ public class Execution {
         return workingDirectory.resolve("environment.sh");
     }
 
-    public Map<String, String> getEnvironment() {
+    public Map<String, String> getEnvironment(String token, String agentEndpoint) {
         // Add any variables injected by Cirro
         var environment = Optional.ofNullable(messageData.getEnvironment())
                 .orElse(new HashMap<>());
@@ -72,10 +72,13 @@ public class Execution {
 
             environment.put(variable.getKey(), StringEscapeUtils.escapeXSI(variable.getValue()));
         }
-
+        // Write variables needed to call AWS credentials service
+        environment.put("CIRRO_TOKEN", token);
+        environment.put("CIRRO_AGENT_ENDPOINT", agentEndpoint);
+        environment.put("CIRRO_EXECUTION_ID", getDatasetId());
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
         environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
-        environment.put("CIRRO_WORKING_DIR", workingDirectory.toString());
+
         return new HashMap<>(environment);
     }
     public Path getAwsConfigPath() {
@@ -89,4 +92,6 @@ public class Execution {
     public Path getCredentialsHelperPath() {
         return workingDirectory.resolve("credentials-helper.sh");
     }
+
+
 }
