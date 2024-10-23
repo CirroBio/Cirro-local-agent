@@ -81,15 +81,16 @@ public class ExecutionCreateService {
     private void writeAwsConfig(Execution execution) {
         // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
-
+        var awsConfigFile = awsConfigTemplate
+                .replace("%%CREDENTIAL_PROCESS_SCRIPT%%", execution.getCredentialsHelperPath().toString());
         try {
-            Files.writeString(execution.getAwsConfigPath(), awsConfigTemplate);
+            Files.writeString(execution.getAwsConfigPath(), awsConfigFile);
         } catch (IOException e) {
             throw new ExecutionException("Failed to write AWS config", e);
         }
 
         // Write credential helper
-        var credentialHelperScript = FileUtils.getResourceAsString("credential-helper.sh");
+        var credentialHelperScript = FileUtils.getResourceAsString("credentials-helper.sh");
         try {
             FileUtils.writeScript(execution.getCredentialsHelperPath(), credentialHelperScript);
         } catch (IOException e) {
