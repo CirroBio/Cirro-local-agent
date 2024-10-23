@@ -42,6 +42,7 @@ public class ExecutionService {
         var msg = AnalysisUpdateMessage.builder()
                 .datasetId(execution.getDatasetId())
                 .projectId(execution.getProjectId())
+                .nativeJobId(execution.getStartOutput().localJobId())
                 .status(request.status())
                 .message(request.message())
                 .build();

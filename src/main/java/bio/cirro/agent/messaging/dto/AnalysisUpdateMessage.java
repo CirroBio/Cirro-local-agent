@@ -15,6 +15,7 @@ import java.util.Map;
 public class AnalysisUpdateMessage extends PortalMessage {
     String datasetId;
     String projectId;
+    String nativeJobId;
     Status status;
     String message;
     Map<String, Object> details;
