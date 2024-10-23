@@ -2,9 +2,9 @@ package bio.cirro.agent;
 
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.execution.ExecutionCreateService;
+import bio.cirro.agent.messaging.dto.AnalysisUpdateMessage;
 import bio.cirro.agent.messaging.dto.PortalMessage;
 import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
-import bio.cirro.agent.messaging.dto.RunAnalysisResponseMessage;
 import bio.cirro.agent.messaging.dto.UnknownMessage;
 import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
@@ -38,22 +38,25 @@ public class MessageHandler {
         };
     }
 
-    private RunAnalysisResponseMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
+    private AnalysisUpdateMessage handleRunAnalysisCommand(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         try {
             var execution = executionCreateService.create(runAnalysisCommandMessage);
-            return RunAnalysisResponseMessage.builder()
+            return AnalysisUpdateMessage.builder()
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
-                    .nativeJobId(execution.getOutput().localJobId())
-                    .output(execution.getOutput().stdout())
+                    .projectId(runAnalysisCommandMessage.getProjectId())
+                    .nativeJobId(execution.getStartOutput().localJobId())
+                    .message(execution.getStartOutput().stdout())
                     .status(Status.PENDING)
                     .build();
         } catch (ExecutionException e) {
             var message = String.format("Error running analysis: %s", e.getMessage());
             log.error(message, e);
-            return RunAnalysisResponseMessage.builder()
-                    .output(e.getMessage())
-                    .status(Status.FAILED)
+            return AnalysisUpdateMessage.builder()
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
+                    .projectId(runAnalysisCommandMessage.getProjectId())
+                    .nativeJobId(null)
+                    .message(e.getMessage())
+                    .status(Status.FAILED)
                     .build();
         }
     }

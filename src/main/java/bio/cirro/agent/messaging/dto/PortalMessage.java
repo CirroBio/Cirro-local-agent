@@ -21,7 +21,7 @@ import io.micronaut.serde.annotation.Serdeable;
         @JsonSubTypes.Type(value = HeartbeatMessage.class, name = "heartbeat"),
         @JsonSubTypes.Type(value = RunAnalysisCommandMessage.class, name = "run-analysis"),
         @JsonSubTypes.Type(value = AgentRegisterMessage.class, name = "register"),
-        @JsonSubTypes.Type(value = RunAnalysisResponseMessage.class, name = "run-analysis-response"),
+        @JsonSubTypes.Type(value = AnalysisUpdateMessage.class, name = "analysis-update"),
         @JsonSubTypes.Type(value = AckMessage.class, name = "ack"),
 })
 public abstract class PortalMessage {

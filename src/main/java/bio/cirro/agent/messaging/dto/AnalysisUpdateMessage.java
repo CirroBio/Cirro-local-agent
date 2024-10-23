@@ -6,17 +6,17 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
-/**
- * Message sent by the agent to the portal in response to a RunAnalysisCommandMessage.
- * It contains information of the submitted job.
- */
-@Value
+import java.util.Map;
+
 @EqualsAndHashCode(callSuper = true)
+@Value
 @Serdeable
 @Builder
-public class RunAnalysisResponseMessage extends PortalMessage {
-    Status status;
-    String nativeJobId;
-    String output;
+public class AnalysisUpdateMessage extends PortalMessage {
     String datasetId;
+    String projectId;
+    String nativeJobId;
+    Status status;
+    String message;
+    Map<String, Object> details;
 }
