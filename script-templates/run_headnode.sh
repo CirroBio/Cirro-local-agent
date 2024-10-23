@@ -29,6 +29,10 @@ EOF
 # Load the apptainer dependency
 ml Apptainer/1.1.6
 
+# Set the apptainer environment variables within the image
+APPTAINERENV_APPTAINERROOT=/app/software/Apptainer/1.1.6
+APPTAINERENV_APPEND_PATH=/app/software/Apptainer/1.1.6/bin
+
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"
 mkdir -p "${PW_PROJECT_DIR}/apptainer"
@@ -50,4 +54,5 @@ apptainer run \
     --workdir "${TMPDIR}" \
     --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
+    --bind /app/software/Apptainer \
     "${LOCAL_IMAGE}"
