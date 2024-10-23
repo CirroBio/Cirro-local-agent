@@ -30,8 +30,8 @@ EOF
 ml Apptainer/1.1.6
 
 # Set the apptainer environment variables within the image
-APPTAINERENV_APPTAINERROOT=/app/software/Apptainer/1.1.6
-APPTAINERENV_APPEND_PATH=/app/software/Apptainer/1.1.6/bin
+export APPTAINERENV_APPTAINERROOT=/app/software/Apptainer/1.1.6
+export APPTAINERENV_APPEND_PATH=/app/software/Apptainer/1.1.6/bin
 
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"
