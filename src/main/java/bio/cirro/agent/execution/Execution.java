@@ -92,6 +92,8 @@ public class Execution {
         environment.put("AGENT_TOKEN", token);
         environment.put("AGENT_ENDPOINT", agentEndpoint);
         environment.put("AGENT_EXECUTION_ID", getDatasetId());
+        environment.put("AWS_PROFILE", "default");
+        environment.put("AWS_REGION", getMessageData().getRegion());
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
         environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
 
