@@ -8,12 +8,6 @@ LOCAL_IMAGE="${2}"
 echo "$(date) Pulling image: ${HEADNODE_IMAGE}"
 echo "$(date) Local image: ${LOCAL_IMAGE}"
 
-# If the local image exists, exit
-if [[ -f "${LOCAL_IMAGE}" ]]; then
-    echo "$(date) Local image already exists: ${LOCAL_IMAGE}"
-    exit 0
-fi
-
 # Use a timeout to prevent the script from running indefinitely
 TIMEOUT=${TIMEOUT:-600}
 TIMEOUT_INTERVAL=10
@@ -28,12 +22,6 @@ while [[ -e "${LOCAL_IMAGE}.lock" ]]; do
         exit 1
     fi
 done
-
-# If the local image exists, exit
-if [[ -f "${LOCAL_IMAGE}" ]]; then
-    echo "$(date) Local image already exists: ${LOCAL_IMAGE}"
-    exit 0
-fi
 
 # Create the lock file
 touch "${LOCAL_IMAGE}.lock"
@@ -54,4 +42,4 @@ aws ecr get-login-password --region "${REGION}" | \
         "docker://${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 
 echo "$(date) Pulling image: ${HEADNODE_IMAGE}"
-apptainer pull "${LOCAL_IMAGE}" "docker://${HEADNODE_IMAGE}"
+apptainer pull --force "${LOCAL_IMAGE}" "docker://${HEADNODE_IMAGE}"

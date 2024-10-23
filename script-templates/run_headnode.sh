@@ -36,6 +36,7 @@ APPTAINERENV_APPEND_PATH=/app/software/Apptainer/1.1.6/bin
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"
 mkdir -p "${PW_PROJECT_DIR}/apptainer"
+APPTAINER_CACHEDIR="${PW_SHARED_DIR}/headnode_images/.cache" \
 bash apptainer_pull.sh "${PW_HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
 
 echo "$(date) Running headnode image: ${LOCAL_IMAGE}"
