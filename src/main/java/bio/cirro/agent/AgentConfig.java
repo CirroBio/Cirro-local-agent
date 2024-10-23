@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.regex.Matcher;
 
 @ConfigurationProperties("cirro.agent")
 @Setter
@@ -51,7 +52,8 @@ public class AgentConfig {
         if (directory == null) {
             return null;
         }
-        var expandedPath = directory.replaceFirst("^~", System.getProperty("user.home"));
+        var home = System.getProperty("user.home");
+        var expandedPath = directory.replaceFirst("^~", Matcher.quoteReplacement(home));
         return Paths.get(expandedPath).toAbsolutePath();
     }
 
