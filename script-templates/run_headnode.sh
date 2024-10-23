@@ -24,6 +24,8 @@ export WORKER_PRIORITY=5
 export PW_ONDEMAND_JOB_QUEUE="campus-new"
 export PW_SPOT_JOB_QUEUE="campus-new"
 export PW_DRAGEN_JOB_QUEUE="campus-new"
+export SLURM_CONF=${PW_SHARED_DIR}/slurm.conf
+export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib64:/usr/lib/x86_64-linux-gnu/
 EOF
 
 # Load the apptainer dependency
@@ -36,8 +38,8 @@ export APPTAINERENV_APPEND_PATH=/app/software/Apptainer/1.1.6/bin
 # Pull the headnode image using apptainer
 mkdir -p "${PW_SHARED_DIR}/headnode_images"
 mkdir -p "${PW_PROJECT_DIR}/apptainer"
-APPTAINER_CACHEDIR="${PW_SHARED_DIR}/headnode_images" \
-  bash "${PW_SHARED_DIR}/apptainer_pull.sh" "${PW_HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
+APPTAINER_CACHEDIR="${PW_SHARED_DIR}/headnode_images/.cache" \
+bash "${PW_SHARED_DIR}/apptainer_pull.sh" "${PW_HEADNODE_IMAGE}" "${LOCAL_IMAGE}"
 
 echo "$(date) Running headnode image: ${LOCAL_IMAGE}"
 echo "$(date) Project directory: ${PW_PROJECT_DIR}"
@@ -48,6 +50,7 @@ mkdir -p "${TMPDIR}/.nextflow"
 
 # Run the headnode image
 apptainer run \
+    --fakeroot \
     --containall \
     --bind "${PW_PROJECT_DIR}" \
     --env-file "${PW_ENVIRONMENT_FILE}" \
@@ -56,4 +59,12 @@ apptainer run \
     --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
     --bind /app/software/Apptainer \
+    --bind /etc/slurm \
+    --bind /etc/passwd \
+    --bind /usr/bin/scancel \
+    --bind /usr/bin/sbatch \
+    --bind /usr/bin/squeue \
+    --bind /usr/bin/munge \
+    --bind /usr/lib/x86_64-linux-gnu/ \
+    --bind /run/munge \
     "${LOCAL_IMAGE}"
