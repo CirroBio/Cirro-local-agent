@@ -1,7 +1,6 @@
 package bio.cirro.agent.execution;
 
 import jakarta.inject.Singleton;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
@@ -13,9 +12,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Consider changing to SQLite database
  */
 @Singleton
-@AllArgsConstructor
 public class ExecutionRepository {
-    private static final Map<String, Execution> executionMap = new ConcurrentHashMap<>();
+    private final Map<String, Execution> executionMap;
+
+    public ExecutionRepository() {
+        this.executionMap = new ConcurrentHashMap<>();
+    }
 
     public void add(Execution execution) {
         executionMap.put(execution.getExecutionId(), execution);

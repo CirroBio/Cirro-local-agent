@@ -103,7 +103,6 @@ public class ExecutionCreateService {
             Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), SUBMIT_SCRIPT);
             if (!launchScript.toFile().exists()) {
                 throw new ExecutionException("Launch script not found", null);
-                // TODO: Write default launch script?
             }
             log.debug("Using launch script: {}", launchScript);
             var headnodeLaunchProcessBuilder = new ProcessBuilder()

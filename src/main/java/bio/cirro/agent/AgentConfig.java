@@ -3,6 +3,7 @@ package bio.cirro.agent;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.util.regex.Matcher;
 @Setter
 @Getter
 @Slf4j
+@Singleton
 public class AgentConfig {
     private String url;
     private String id;
@@ -35,7 +37,7 @@ public class AgentConfig {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
         this.absoluteSharedDirectory = getAbsolutePath(sharedDirectory);
         if (this.jwtSecret == null) {
-            log.debug("Generating random JWT secret");
+            log.info("Generating random JWT secret since none was provided");
             this.jwtSecret = SystemUtils.generateRandomBytes(20);
         }
     }
