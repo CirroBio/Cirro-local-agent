@@ -1,9 +1,9 @@
 package bio.cirro.agent.messaging;
 
 import bio.cirro.agent.aws.AwsRequestSigner;
-import io.micronaut.context.annotation.Bean;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.websocket.WebSocketClient;
+import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import reactor.core.publisher.Flux;
@@ -11,8 +11,8 @@ import reactor.core.publisher.Flux;
 /**
  * Sets up a WebSocket client for the agent to connect to the Cirro Portal.
  */
-@Bean
 @AllArgsConstructor
+@Singleton
 public class AgentClientFactory {
     private final WebSocketClient webSocketClient;
     private final AwsRequestSigner awsRequestSigner;
