@@ -21,7 +21,6 @@ LOCAL_IMAGE="${PW_SHARED_DIR}/headnode_images/${IMAGE_NAME}.sif"
 cat <<EOF >> "${PW_ENVIRONMENT_FILE}"
 export APPTAINER_CACHEDIR="${PW_PROJECT_DIR}/apptainer"
 export WORKER_PRIORITY=5
-export AWS_PROFILE="default"
 export PW_ONDEMAND_JOB_QUEUE="campus-new"
 export PW_SPOT_JOB_QUEUE="campus-new"
 export PW_DRAGEN_JOB_QUEUE="campus-new"
