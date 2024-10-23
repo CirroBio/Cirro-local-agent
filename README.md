@@ -64,9 +64,11 @@ You can specify a different directory by setting the relevant configuration or e
 You must set up the following scripts:
 
 - `submit_headnode.sh` (required)
-   - This script is used to submit the headnode job to the local compute resource.
-- `nextflow-override.config` (optional)
-- `cromwell-override.config` (optional)
+  - This script is used to submit the headnode job to the local compute resource.
+- `nextflow.local.config` (optional)
+  - This file is used to set up the nextflow configuration for the job.
+- `cromwell.local.config` (optional)
+  - This file is used to set up the cromwell configuration for the job.
 
 Depending on your environment, you may also need supplementary scripts to support the above scripts.
 

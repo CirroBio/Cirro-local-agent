@@ -3,16 +3,21 @@ package bio.cirro.agent;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import jakarta.annotation.PostConstruct;
+import jakarta.inject.Singleton;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.regex.Matcher;
 
 @ConfigurationProperties("cirro.agent")
 @Setter
 @Getter
+@Slf4j
+@Singleton
 public class AgentConfig {
     private String url;
     private String id;
@@ -32,6 +37,7 @@ public class AgentConfig {
         this.absoluteWorkDirectory = getAbsolutePath(workDirectory);
         this.absoluteSharedDirectory = getAbsolutePath(sharedDirectory);
         if (this.jwtSecret == null) {
+            log.info("Generating random JWT secret since none was provided");
             this.jwtSecret = SystemUtils.generateRandomBytes(20);
         }
     }
@@ -48,7 +54,8 @@ public class AgentConfig {
         if (directory == null) {
             return null;
         }
-        var expandedPath = directory.replaceFirst("^~", System.getProperty("user.home"));
+        var home = System.getProperty("user.home");
+        var expandedPath = directory.replaceFirst("^~", Matcher.quoteReplacement(home));
         return Paths.get(expandedPath).toAbsolutePath();
     }
 

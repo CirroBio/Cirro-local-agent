@@ -72,11 +72,19 @@ public class AwsTokenClient {
                         .addResource("*")
                 )
                 .addStatement(b -> b
+                        .sid("AllowKMS")
+                        .effect(IamEffect.ALLOW)
+                        .addAction("kms:Decrypt")
+                        .addAction("kms:GenerateDataKey*")
+                        .addResource("*")
+                )
+                .addStatement(b -> b
                         .sid("AllowPullImage")
                         .effect(IamEffect.ALLOW)
                         .addAction("ecr:GetAuthorizationToken")
                         .addAction("ecr:BatchCheckLayerAvailability")
                         .addAction("ecr:GetDownloadUrlForLayer")
+                        .addAction("ecr:BatchGetImage")
                         .addResource("*")
                 )
                 .build();
