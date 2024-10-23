@@ -55,6 +55,6 @@ apptainer run \
     --workdir "${TMPDIR}" \
     --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
-    --bind /usr/bin \
+    --bind /usr/bin/mksquashfs \
     --bind /app/software/Apptainer \
     "${LOCAL_IMAGE}"
