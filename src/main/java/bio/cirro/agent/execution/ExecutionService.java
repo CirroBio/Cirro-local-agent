@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sts.StsClient;
 
 import java.util.List;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Singleton
@@ -39,10 +40,13 @@ public class ExecutionService {
             log.warn("Socket is closed, cannot send message");
             return;
         }
+        var nativeJobId = Optional.ofNullable(execution.getStartOutput())
+                .map(ExecutionStartOutput::localJobId)
+                .orElse(null);
         var msg = AnalysisUpdateMessage.builder()
                 .datasetId(execution.getDatasetId())
                 .projectId(execution.getProjectId())
-                .nativeJobId(execution.getStartOutput().localJobId())
+                .nativeJobId(nativeJobId)
                 .status(request.status())
                 .message(request.message())
                 .build();

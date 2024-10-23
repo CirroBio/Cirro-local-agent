@@ -37,6 +37,9 @@ public class ExecutionController {
     public HttpResponse<Void> updateStatus(@PathVariable String executionId,
                                            @Body UpdateStatusRequest request,
                                            @Header("Authorization") String authorization) {
+        if (request.status() == null) {
+            return HttpResponse.badRequest();
+        }
         agentTokenService.validate(authorization, executionId);
         executionService.updateStatus(executionId, request);
         return HttpResponse.ok();
