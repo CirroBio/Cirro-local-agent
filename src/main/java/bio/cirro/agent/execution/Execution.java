@@ -31,7 +31,8 @@ public class Execution {
 
     // State
     private Status status;
-    private ExecutionStartOutput output;
+    private ExecutionStartOutput startOutput;
+    private ExecutionFinishOutput finishOutput;
 
     public String getDatasetId() {
         return messageData.getDatasetId();

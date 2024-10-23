@@ -43,8 +43,8 @@ public class MessageHandler {
             var execution = executionCreateService.create(runAnalysisCommandMessage);
             return RunAnalysisResponseMessage.builder()
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
-                    .nativeJobId(execution.getOutput().localJobId())
-                    .output(execution.getOutput().stdout())
+                    .nativeJobId(execution.getStartOutput().localJobId())
+                    .output(execution.getStartOutput().stdout())
                     .status(Status.PENDING)
                     .build();
         } catch (ExecutionException e) {

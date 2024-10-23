@@ -52,9 +52,9 @@ public class ExecutionCreateService {
             writeAwsConfig(execution);
 
             var executionOutput = startExecution(execution);
-            execution.setOutput(executionOutput);
+            execution.setStartOutput(executionOutput);
         } catch (Exception ex) {
-            executionRepository.remove(execution.getExecutionId());
+            execution.setStatus(Status.FAILED);
             throw new ExecutionException("Failed to start execution", ex);
         }
         return execution;

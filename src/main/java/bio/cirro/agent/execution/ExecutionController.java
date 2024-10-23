@@ -2,7 +2,9 @@ package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentTokenService;
 import bio.cirro.agent.aws.AwsCredentials;
+import bio.cirro.agent.models.UpdateStatusRequest;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Header;
@@ -31,11 +33,12 @@ public class ExecutionController {
         return HttpResponse.ok(executionService.generateS3Credentials(executionId));
     }
 
-    @Put("/{executionId}/complete")
-    public HttpResponse<Void> completeExecution(@PathVariable String executionId,
-                                                @Header("Authorization") String authorization) {
+    @Put("/{executionId}/status")
+    public HttpResponse<Void> updateStatus(@PathVariable String executionId,
+                                           @Body UpdateStatusRequest request,
+                                           @Header("Authorization") String authorization) {
         agentTokenService.validate(authorization, executionId);
-        executionService.completeExecution(executionId);
+        executionService.updateStatus(executionId, request);
         return HttpResponse.ok();
     }
 }

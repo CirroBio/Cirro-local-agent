@@ -3,18 +3,25 @@ package bio.cirro.agent.execution;
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.aws.AwsCredentials;
 import bio.cirro.agent.aws.AwsTokenClient;
+import bio.cirro.agent.messaging.AgentClientFactory;
+import bio.cirro.agent.messaging.dto.AnalysisUpdateMessage;
+import bio.cirro.agent.models.Status;
+import bio.cirro.agent.models.UpdateStatusRequest;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sts.StsClient;
 
 import java.util.List;
 
 @AllArgsConstructor
 @Singleton
+@Slf4j
 public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final AgentConfig agentConfig;
     private final StsClient stsClient;
+    private final AgentClientFactory agentClientFactory;
 
     public List<ExecutionDto> list() {
         return executionRepository.getAll().stream()
@@ -22,14 +29,31 @@ public class ExecutionService {
                 .toList();
     }
 
-    public void completeExecution(String executionId) {
-        // Handle stuff
-        // Remove if everything is successful
-        executionRepository.remove(executionId);
+    public void updateStatus(String executionId, UpdateStatusRequest request) {
+        var execution = executionRepository.get(executionId);
+        execution.setStatus(request.status());
+        execution.setFinishOutput(new ExecutionFinishOutput(request.message()));
+
+        var socket = agentClientFactory.getClientSocket();
+        if (!socket.isOpen()) {
+            log.warn("Socket is closed, cannot send message");
+            return;
+        }
+        var msg = AnalysisUpdateMessage.builder()
+                .datasetId(execution.getDatasetId())
+                .projectId(execution.getProjectId())
+                .status(request.status())
+                .message(request.message())
+                .build();
+        socket.sendMessage(msg);
     }
 
     public AwsCredentials generateS3Credentials(String executionId) {
         var execution = executionRepository.get(executionId);
+        if (execution.getStatus() == Status.COMPLETED) {
+            throw new IllegalStateException("Execution already completed");
+        }
+
         var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
         var creds = tokenClient.generateCredentialsForExecution(execution);
         return AwsCredentials.builder()
