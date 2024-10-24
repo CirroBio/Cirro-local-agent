@@ -67,7 +67,7 @@ public class ExecutionCreateService {
         var environmentSb = new StringBuilder();
         environmentSb.append("#!/bin/bash\n");
         for (Map.Entry<String, String> entry : environmentVariables.entrySet()) {
-            environmentSb.append(String.format("export %s=%s%n", entry.getKey(), entry.getValue()));
+            environmentSb.append(String.format("export %s=\"%s\"%n", entry.getKey(), entry.getValue()));
         }
 
         var environmentFile = execution.getEnvironmentPath();
@@ -128,10 +128,6 @@ public class ExecutionCreateService {
             }
             var processOutput = processOutputSb.toString();
             log.debug("Execution output: {}", processOutput);
-            if (jobId == null) {
-                throw new ExecutionException("Failed to extract job ID");
-            }
-
             headnodeLaunchProcess.waitFor(10, TimeUnit.SECONDS);
 
             if (headnodeLaunchProcess.exitValue() != 0) {

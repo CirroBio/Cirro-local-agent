@@ -4,6 +4,9 @@
 
 Write up on Slurm & Apptainer.
 
+### Local (Docker)
+
+Write up on using Docker locally.
 
 ### Environment Variables
 

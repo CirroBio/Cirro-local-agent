@@ -29,8 +29,8 @@ public class AgentConfig {
     private Path absoluteWorkDirectory;
     private Path absoluteSharedDirectory;
     private String version;
-    private String fileAccessRoleArn;
     private byte[] jwtSecret;
+    private int jwtExpiryDays;
 
     @PostConstruct
     public void init() {

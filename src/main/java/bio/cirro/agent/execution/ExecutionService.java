@@ -49,6 +49,7 @@ public class ExecutionService {
                 .nativeJobId(nativeJobId)
                 .status(request.status())
                 .message(request.message())
+                .details(request.details())
                 .build();
         socket.sendMessage(msg);
     }

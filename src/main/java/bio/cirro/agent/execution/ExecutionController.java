@@ -38,10 +38,10 @@ public class ExecutionController {
                                            @Body UpdateStatusRequest request,
                                            @Header("Authorization") String authorization) {
         if (request.status() == null) {
-            return HttpResponse.badRequest();
+            throw new IllegalArgumentException("Status is required");
         }
         agentTokenService.validate(authorization, executionId);
         executionService.updateStatus(executionId, request);
-        return HttpResponse.ok();
+        return HttpResponse.accepted();
     }
 }

@@ -31,19 +31,22 @@ cirro:
     heartbeat-interval: 30
     watch-interval: 2
     log-level: INFO
+    jwt-secret: <RANDOM>
 ```
 
 The following environment variables can be set to override the above configuration.
 
-| Environment Variable           | Description                          |
-|--------------------------------|--------------------------------------|
-| CIRRO_AGENT_URL                | Path to the configuration file       |
-| CIRRO_AGENT_ID                 | Agent ID                             |
-| CIRRO_AGENT_WORK_DIRECTORY     | Working directory for jobs           |
-| CIRRO_AGENT_SHARED_DIRECTORY   | Shared directory for jobs            |
-| CIRRO_AGENT_HEARTBEAT_INTERVAL | Heartbeat interval in seconds        |
-| CIRRO_AGENT_WATCH_INTERVAL     | Watch interval in seconds            |
-| CIRRO_AGENT_LOG_LEVEL          | Log level (DEBUG, INFO, WARN, ERROR) |
+| Environment Variable           | Description                          | Default                                   |
+|--------------------------------|--------------------------------------|-------------------------------------------|
+| CIRRO_AGENT_URL                | Cirro instance URL                   | https://app.cirro.bio                     |
+| CIRRO_AGENT_ID                 | Agent ID                             | default-agent                             |
+| CIRRO_AGENT_WORK_DIRECTORY     | Working directory for jobs           | work/                                     |
+| CIRRO_AGENT_SHARED_DIRECTORY   | Shared directory for jobs            | shared/                                   |
+| CIRRO_AGENT_HEARTBEAT_INTERVAL | Heartbeat interval in seconds        | 60                                        |
+| CIRRO_AGENT_WATCH_INTERVAL     | Watch interval in seconds            | 2                                         |
+| CIRRO_AGENT_LOG_LEVEL          | Log level (DEBUG, INFO, WARN, ERROR) | INFO                                      |
+| CIRRO_AGENT_JWT_SECRET         | JWT secret for signing               | Random value generated upon agent startup |
+| CIRRO_AGENT_JWT_EXPIRY         | JWT expiry in days                   | 7                                         |
 
 ### AWS Configuration
 
@@ -75,6 +78,14 @@ Depending on your environment, you may also need supplementary scripts to suppor
 We've included examples in the [`script-templates/`](./script-templates) directory for various runtime environments.
 
 If the job is executed on a different machine, you will need to ensure that these directories are shared between the machines, through a network share or a shared filesystem.
+
+### Agent Security
+
+The jobs run by the agent communicate back through an HTTP server exposed by the agent.
+The default is running on `http://localhost:8080`.
+It is recommended to run the agent behind a reverse proxy with HTTPS enabled.
+Each job is authenticated using a unique JWT token signed by the agent.
+The default lifetime of the token is 7 days to account for long-running jobs. 
 
 ### Debugging
 

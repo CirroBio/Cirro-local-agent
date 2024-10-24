@@ -81,10 +81,10 @@ public class Execution {
     }
 
     public Map<String, String> getEnvironment(String token, String agentEndpoint) {
-        // Add any variables injected by Cirro
+        // Add any variables injected from Cirro
         var environment = Optional.ofNullable(messageData.getEnvironment())
                 .orElse(new HashMap<>());
-        environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
+        // Add variables from the agent
         environment.put("PW_PROJECT_DIR", getProjectRoot().toString());
         environment.put("PW_WORKING_DIR", getWorkingDirectory().toString());
         environment.put("PW_SHARED_DIR", getAgentSharedDirectory().toString());
@@ -97,8 +97,9 @@ public class Execution {
         environment.put("AWS_REGION", getMessageData().getRegion());
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
         environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
-
-        return new HashMap<>(environment);
+        // Escape all values
+        environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
+        return Map.copyOf(environment);
     }
     public Path getAwsConfigPath() {
         return getWorkingDirectory().resolve("aws.config");
