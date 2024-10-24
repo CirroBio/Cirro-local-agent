@@ -83,6 +83,7 @@ public class Execution {
     public Map<String, String> getEnvironment(String token, String agentEndpoint) {
         // Add any variables injected from Cirro
         var environment = Optional.ofNullable(messageData.getEnvironment())
+                .map(HashMap::new)
                 .orElse(new HashMap<>());
         // Add variables from the agent
         environment.put("PW_PROJECT_DIR", getProjectRoot().toString());

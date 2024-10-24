@@ -3,6 +3,6 @@ cirro:
     url: https://dev.cirro.bio
     id: default-agent
     log-level: DEBUG
-    work-directory: ~/cirro-agent-work
+    work-directory: work/
     watch-interval: 10
     shared-directory: shared/

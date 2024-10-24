@@ -1,6 +1,5 @@
 package bio.cirro.agent;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +15,7 @@ class AgentTokenServiceTest {
         AgentConfig agentConfig = new AgentConfig();
         agentConfig.setJwtSecret("secret".getBytes());
         agentConfig.setId(MOCK_AGENT_ID);
+        agentConfig.setJwtExpiryDays(1);
         agentTokenService = new AgentTokenService(agentConfig);
     }
 
@@ -36,13 +36,13 @@ class AgentTokenServiceTest {
         var mockExecutionId = UUID.randomUUID().toString();
         var differentId = UUID.randomUUID().toString();
         var token = agentTokenService.generateForExecution(mockExecutionId);
-        Assertions.assertThrows(IllegalArgumentException.class,
+        Assertions.assertThrows(SecurityException.class,
                 () -> agentTokenService.validate(token, differentId));
     }
 
     @Test
     void testVerifyBadToken() {
-        Assertions.assertThrows(JWTVerificationException.class,
+        Assertions.assertThrows(SecurityException.class,
                 () -> agentTokenService.validate("bad-token", "1"));
     }
 }
