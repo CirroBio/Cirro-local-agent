@@ -12,6 +12,15 @@ repositories {
     mavenCentral()
 }
 
+def buildVersion = System.getenv("BUILD_VERSION") ?: "edge"
+
+import org.apache.tools.ant.filters.ReplaceTokens
+processResources {
+    filter ReplaceTokens, tokens: [
+            "BUILD_VERSION": buildVersion
+    ]
+}
+
 jacocoTestReport {
     dependsOn test
     reports {

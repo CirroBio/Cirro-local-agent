@@ -22,7 +22,9 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Run build with Gradle Wrapper
-      run: ./gradlew shadowJar
+      run: |
+        export BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
+        ./gradlew shadowJar
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
