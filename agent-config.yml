@@ -1,6 +1,6 @@
 cirro:
   agent:
-    url: https://dev.cirro.bio
+    url: https://portal-dev.api-routing.aws.cirro.bio
     id: default-agent
     log-level: DEBUG
     work-directory: work/

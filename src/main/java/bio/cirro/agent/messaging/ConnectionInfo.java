@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record ConnectionInfo(
         String url,
+        String wsUrl,
         String agentId,
         String userAgent,
         String region

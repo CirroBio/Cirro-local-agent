@@ -140,7 +140,8 @@ public class AgentCommand implements Runnable {
             var clientSocket = agentClientFactory.getClientSocket();
             if (clientSocket == null || !clientSocket.isOpen()) {
                 var connectionInfo = ConnectionInfo.builder()
-                        .url(systemInfo.agentEndpoint())
+                        .url(agentConfig.getUrl())
+                        .wsUrl(systemInfo.agentEndpoint())
                         .region(systemInfo.region())
                         .agentId(agentConfig.getId())
                         .userAgent(agentConfig.getUserAgent())
