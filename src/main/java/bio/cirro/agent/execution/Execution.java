@@ -12,18 +12,17 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
+/**
+ * Represents a single execution of an analysis or job
+ */
 @AllArgsConstructor
 @Data
 @Builder
 @Slf4j
 public class Execution {
-    private static final List<String> ALLOWED_ENV_PREFIXES = List.of("PW_", "CIRRO_");
-
     private final Path agentWorkingDirectory;
     private final Path agentSharedDirectory;
     private final RunAnalysisCommandMessage messageData;
@@ -76,10 +75,16 @@ public class Execution {
         );
     }
 
+    /**
+     * Path to the environment file that contains all the environment variables for the execution
+     */
     public Path getEnvironmentPath() {
         return getWorkingDirectory().resolve("env.list");
     }
 
+    /**
+     * Generates the environment variables for the execution
+     */
     public Map<String, String> getEnvironment(String token, String agentEndpoint) {
         // Add any variables injected from Cirro
         var environment = Optional.ofNullable(messageData.getEnvironment())
@@ -102,6 +107,7 @@ public class Execution {
         environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
         return Map.copyOf(environment);
     }
+
     public Path getAwsConfigPath() {
         return getWorkingDirectory().resolve("aws.config");
     }

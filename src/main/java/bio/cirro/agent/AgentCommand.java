@@ -13,6 +13,7 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
@@ -200,7 +201,7 @@ public class AgentCommand implements Runnable {
         log.debug("Connecting to Cirro at {}", url);
         var request = HttpRequest.GET(url)
                 .header("User-Agent", agentConfig.getUserAgent())
-                .accept("application/json");
+                .accept(MediaType.APPLICATION_JSON);
         var response = httpClient.toBlocking().retrieve(request, SystemInfoResponse.class);
         if (response.agentEndpoint() == null || response.agentEndpoint().isBlank()) {
             throw new AgentException("Invalid Cirro server response");

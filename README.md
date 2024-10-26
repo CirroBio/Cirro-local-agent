@@ -6,6 +6,7 @@ Cirro Agent is a daemon process that allows you to submit jobs to local compute 
 
 Pre-requisites:
 - Java 21 or higher
+- POSIX-compatible operating system (Linux, MacOS, WSL on Windows)
 
 Download from the [Releases](https://github.com/CirroBio/Cirro-local-agent/releases) page and run the jar file:
 
@@ -54,6 +55,10 @@ The agent will use the standard [AWS CLI environment variables](https://docs.aws
 
 You can specify the `AWS_PROFILE` environment variable to use a specific profile.
 
+```bash
+AWS_PROFILE="my-profile" java -jar cirro-agent-0.1-all.jar
+```
+
 ### Directory and Scripts Setup
 
 The agent requires a base directory to store working files and logs for workflows that are run.
@@ -64,7 +69,7 @@ By default, the agent will use the `shared/` directory in the current working di
 
 You can specify a different directory by setting the relevant configuration or environment variable.
 
-You must set up the following scripts:
+You must set up the following scripts in the shared directory:
 
 - `submit_headnode.sh` (required)
   - This script is used to submit the headnode job to the local compute resource.
@@ -78,6 +83,9 @@ Depending on your environment, you may also need supplementary scripts to suppor
 We've included examples in the [`script-templates/`](./script-templates) directory for various runtime environments.
 
 If the job is executed on a different machine, you will need to ensure that these directories are shared between the machines, through a network share or a shared filesystem.
+
+The work directory should be cleaned up periodically to remove old job files.
+Files kept in here will be used to take advantage of workflow call caching for Nextflow and Cromwell.
 
 ### Agent Security
 

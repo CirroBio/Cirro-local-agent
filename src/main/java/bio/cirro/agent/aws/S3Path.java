@@ -8,6 +8,11 @@ public record S3Path(String bucket, String key) {
         return String.format("s3://%s/%s", bucket, key);
     }
 
+    /**
+     * Parses an S3 path in the URI format s3://bucket/key
+     * @param s3Path S3 path
+     * @return S3Path object
+     */
     public static S3Path parse(String s3Path) {
         var s3Uri = URI.create(s3Path);
         if (!s3Uri.getScheme().equals("s3")) {

@@ -8,6 +8,9 @@ import lombok.Value;
 
 import java.util.Map;
 
+/**
+ * Message sent by the agent to the portal to update the status of an analysis.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Value
 @Serdeable

@@ -13,6 +13,9 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.regex.Matcher;
 
+/**
+ * Configuration for the agent.
+ */
 @ConfigurationProperties("cirro.agent")
 @Setter
 @Getter

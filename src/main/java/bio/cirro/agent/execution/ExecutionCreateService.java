@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+/**
+ * Service to create and start an execution
+ */
 @Singleton
 @AllArgsConstructor
 @Slf4j
@@ -34,6 +37,12 @@ public class ExecutionCreateService {
     private final ExecutionRepository executionRepository;
     private final EmbeddedServer embeddedServer;
 
+    /**
+     * Create and start an execution
+     *
+     * @param runAnalysisCommandMessage message containing details on the analysis to run
+     * @return the created execution
+     */
     public Execution create(RunAnalysisCommandMessage runAnalysisCommandMessage) {
         var execution = Execution.builder()
                 .messageData(runAnalysisCommandMessage)
@@ -60,6 +69,9 @@ public class ExecutionCreateService {
         return execution;
     }
 
+    /**
+     * Write environment variables to a file
+     */
     private void writeEnvironment(Execution execution, String token) {
         var agentEndpoint = embeddedServer.getURI().toString();
         var environmentVariables = execution.getEnvironment(token, agentEndpoint);
@@ -78,8 +90,12 @@ public class ExecutionCreateService {
         }
     }
 
+    /*
+     * Write AWS config file and credential helper script
+     * @implNote The AWS config file has the full path to the credential helper script
+     * because it cannot read from environment variables or relative paths
+     */
     private void writeAwsConfig(Execution execution) {
-        // Write AWS config file
         var awsConfigTemplate = FileUtils.getResourceAsString("aws-config.properties");
         var awsConfigFile = awsConfigTemplate
                 .replace("%%CREDENTIAL_PROCESS_SCRIPT%%", execution.getCredentialsHelperPath().toString());
@@ -89,7 +105,6 @@ public class ExecutionCreateService {
             throw new ExecutionException("Failed to write AWS config", e);
         }
 
-        // Write credential helper
         var credentialHelperScript = FileUtils.getResourceAsString("credentials-helper.sh");
         try {
             FileUtils.writeScript(execution.getCredentialsHelperPath(), credentialHelperScript);
@@ -98,6 +113,10 @@ public class ExecutionCreateService {
         }
     }
 
+    /**
+     * Submit the execution using the launch script
+     * in the working directory of the execution
+     */
     private ExecutionStartOutput startExecution(Execution execution) {
         try {
             Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), SUBMIT_SCRIPT);

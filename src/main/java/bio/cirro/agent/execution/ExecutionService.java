@@ -40,6 +40,7 @@ public class ExecutionService {
             log.warn("Socket is closed, cannot send message");
             return;
         }
+        // Build update message and send back to the server.
         var nativeJobId = Optional.ofNullable(execution.getStartOutput())
                 .map(ExecutionStartOutput::localJobId)
                 .orElse(null);

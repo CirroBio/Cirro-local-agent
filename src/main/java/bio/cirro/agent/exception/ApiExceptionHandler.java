@@ -9,6 +9,9 @@ import io.micronaut.http.server.exceptions.ExceptionHandler;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Singleton;
 
+/**
+ * Handles exceptions thrown by the API.
+ */
 @Produces
 @Singleton
 @Requires(classes = {ExceptionHandler.class})

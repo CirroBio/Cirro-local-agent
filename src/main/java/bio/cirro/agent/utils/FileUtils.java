@@ -15,6 +15,13 @@ public class FileUtils {
     private FileUtils() {
         // Utility class
     }
+
+    /**
+     * Writes a script to a file and sets the file permissions to be executable.
+     * @param scriptPath Path to write the script to
+     * @param script Script content
+     * @throws IOException if an I/O error occurs
+     */
     public static void writeScript(Path scriptPath, String script) throws IOException {
         Files.writeString(scriptPath, script);
         try {
@@ -27,6 +34,11 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Reads a resource file as a string.
+     * @param resourcePath Path to the resource file
+     * @return Resource file content as a string
+     */
     @SneakyThrows(IOException.class)
     public static String getResourceAsString(String resourcePath) {
         try (var stream = FileUtils.class.getClassLoader().getResourceAsStream(resourcePath)) {
@@ -35,6 +47,11 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Validates that a directory exists.
+     * @param directory Directory to validate
+     * @param label Label for the directory (used in error messages)
+     */
     public static void validateDirectory(Path directory, String label) {
         try {
             if (!Files.isDirectory(directory)) {

@@ -32,6 +32,9 @@ public class AgentClientFactory {
     private DecodedJWT jwt;
     private String wsConnectionUrl;
 
+    /**
+     * Connects to the Agent WebSocket endpoint.
+     */
     public synchronized AgentClient connect(ConnectionInfo connectionInfo,
                                             MessageHandlerFunction messageHandler) {
         var token = getToken(connectionInfo);
@@ -51,6 +54,9 @@ public class AgentClientFactory {
         return client;
     }
 
+    /**
+     * Generates a token used for calling the WebSocket endpoint.
+     */
     private DecodedJWT getToken(ConnectionInfo connectionInfo) {
         if (jwt != null && !jwt.getExpiresAtAsInstant().isBefore(Instant.now())) {
             log.debug("Using cached JWT token");

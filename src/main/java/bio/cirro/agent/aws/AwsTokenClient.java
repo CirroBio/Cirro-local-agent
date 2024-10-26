@@ -19,6 +19,9 @@ public class AwsTokenClient {
     private final String roleArn;
     private final String agentId;
 
+    /**
+     * Generates temporary AWS credentials for an execution.
+     */
     public AwsSessionCredentials generateCredentialsForExecution(Execution execution) {
         var sessionPolicy = createPolicyForExecution(execution);
         var response = stsClient.assumeRole(
@@ -36,11 +39,19 @@ public class AwsTokenClient {
                 .build();
     }
 
+    /**
+     * Generates a role session name for the execution, limited to the maximum length.
+     * @implNote Role session name is used to capture information about who is assuming the role.
+     * This is saved in CloudTrail logs.
+     */
     private String generateRoleSessionName(String username) {
         var roleSessionName = String.format("%s-%s", agentId, username);
         return roleSessionName.substring(0, Math.min(roleSessionName.length(), MAX_ROLE_SESSION_NAME_LENGTH));
     }
 
+    /**
+     * Creates a policy that restricts the agent to only the dataset and project of the execution.
+     */
     private IamPolicy createPolicyForExecution(Execution execution) {
         var datasetS3Path = execution.getDatasetS3Path();
         var bucketArn = Arn.builder()
@@ -51,6 +62,7 @@ public class AwsTokenClient {
                 .toString();
 
         return IamPolicy.builder()
+                // General S3 permissions
                 .addStatement(b -> b
                         .sid("AllowListBucket")
                         .effect(IamEffect.ALLOW)
@@ -58,6 +70,7 @@ public class AwsTokenClient {
                         .addAction("s3:GetBucketLocation")
                         .addResource("*")
                 )
+                // Restrict the agent to only write to the current dataset's path
                 .addStatement(b -> b
                         .sid("AllowWriteToDataset")
                         .effect(IamEffect.ALLOW)
@@ -65,12 +78,16 @@ public class AwsTokenClient {
                         .addAction("s3:DeleteObject")
                         .addResource(String.format("%s/%s/*", bucketArn, datasetS3Path.key()))
                 )
+                // The agent role that is assumed by the agent is already scoped to the project bucket,
+                // as well as any cross-account access that it was granted,
+                // so we don't need to add any additional restrictions here
                 .addStatement(b -> b
                         .sid("AllowRead")
                         .effect(IamEffect.ALLOW)
                         .addAction("s3:GetObject*")
                         .addResource("*")
                 )
+                // Same with this, the agent role is already scoped to the project's KMS key
                 .addStatement(b -> b
                         .sid("AllowKMS")
                         .effect(IamEffect.ALLOW)
@@ -78,6 +95,7 @@ public class AwsTokenClient {
                         .addAction("kms:GenerateDataKey*")
                         .addResource("*")
                 )
+                // Agent should be allowed to pull any image from ECR
                 .addStatement(b -> b
                         .sid("AllowPullImage")
                         .effect(IamEffect.ALLOW)
