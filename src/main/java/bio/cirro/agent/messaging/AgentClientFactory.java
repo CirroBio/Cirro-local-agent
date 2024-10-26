@@ -30,12 +30,13 @@ public class AgentClientFactory {
     @Getter
     private AgentClient clientSocket;
     private DecodedJWT jwt;
+    private String wsConnectionUrl;
 
     public synchronized AgentClient connect(ConnectionInfo connectionInfo,
                                             MessageHandlerFunction messageHandler) {
         var token = getToken(connectionInfo);
         var request = HttpRequest
-                .GET(connectionInfo.wsUrl() + "?agentId=" + connectionInfo.agentId())
+                .GET(String.format("%s?agentId%s", wsConnectionUrl, connectionInfo.agentId()))
                 .body("")
                 .header("User-Agent", connectionInfo.userAgent())
                 .header("Authorization", "Bearer " + token.getToken());
@@ -57,13 +58,14 @@ public class AgentClientFactory {
         }
         log.debug("Fetching new JWT token");
         var request = HttpRequest
-                .POST(String.format("%s/api/agents/%s/ws-token", connectionInfo.url(), connectionInfo.agentId()), null)
+                .POST(String.format("%s/api/agents/%s/ws-token", connectionInfo.tokenUrl(), connectionInfo.agentId()), null)
                 .body("")
                 .header("User-Agent", connectionInfo.userAgent());
         var signedRequest = awsRequestSigner.signRequest(request, connectionInfo.region());
         var resp = httpClient.toBlocking().retrieve(signedRequest, Argument.mapOf(String.class, String.class));
         var tokenRaw = resp.get("token");
         jwt = JWT.decode(tokenRaw);
+        wsConnectionUrl = resp.get("wsUrl");
         return jwt;
     }
 }
