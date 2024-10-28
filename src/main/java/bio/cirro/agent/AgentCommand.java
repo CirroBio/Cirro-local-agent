@@ -1,6 +1,7 @@
 package bio.cirro.agent;
 
 import bio.cirro.agent.exception.AgentException;
+import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.ConnectionInfo;
 import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
@@ -15,6 +16,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.exceptions.HttpClientException;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
 import io.micronaut.runtime.server.EmbeddedServer;
@@ -124,8 +126,15 @@ public class AgentCommand implements Runnable {
             Thread.currentThread().interrupt();
             log.error("Interrupted", e);
             System.exit(1);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof AgentException) {
+                log.error(e.getCause().getMessage());
+            } else {
+                log.error("Unexpected error", e);
+            }
+            System.exit(1);
         } catch (AgentException e) {
-            log.error("Error: {}", e.getMessage());
+            log.error(e.getMessage());
             System.exit(1);
         } catch (Exception e) {
             log.error("Unexpected error", e);
@@ -141,7 +150,8 @@ public class AgentCommand implements Runnable {
             var clientSocket = agentClientFactory.getClientSocket();
             if (clientSocket == null || !clientSocket.isOpen()) {
                 var connectionInfo = ConnectionInfo.builder()
-                        .tokenUrl(systemInfo.agentEndpoint())
+                        .baseUrl(agentConfig.getUrl())
+                        .tokenBaseUrl(systemInfo.agentEndpoint())
                         .region(systemInfo.region())
                         .agentId(agentConfig.getId())
                         .userAgent(agentConfig.getUserAgent())
@@ -158,7 +168,7 @@ public class AgentCommand implements Runnable {
                                 .build()
                 );
             }
-        } catch (WebSocketClientException e) {
+        } catch (WebSocketClientException | HttpClientException e) {
             var msg = e.getMessage();
             if (msg.contains(HttpStatus.BAD_REQUEST.getReason())) {
                 throw new AgentException("Bad Request: invalid connection info, check agent ID");
