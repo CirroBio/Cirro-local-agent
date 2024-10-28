@@ -1,7 +1,6 @@
 package bio.cirro.agent;
 
 import bio.cirro.agent.exception.AgentException;
-import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.ConnectionInfo;
 import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
@@ -16,7 +15,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
-import io.micronaut.http.client.exceptions.HttpClientException;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
 import io.micronaut.runtime.server.EmbeddedServer;
@@ -33,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import static bio.cirro.agent.execution.ExecutionCreateService.SUBMIT_SCRIPT;
 
@@ -168,13 +168,18 @@ public class AgentCommand implements Runnable {
                                 .build()
                 );
             }
-        } catch (WebSocketClientException | HttpClientException e) {
+        } catch (WebSocketClientException e) {
             var msg = e.getMessage();
             if (msg.contains(HttpStatus.BAD_REQUEST.getReason())) {
                 throw new AgentException("Bad Request: invalid connection info, check agent ID");
             }
             if (msg.contains(HttpStatus.UNAUTHORIZED.getReason())) {
-                throw new AgentException("Unauthorized: check that the role has access");
+                throw new AgentException("Unauthorized: check JWT");
+            }
+            log.error(e.getMessage());
+        } catch (HttpClientResponseException e) {
+            if (e.getStatus() == HttpStatus.UNAUTHORIZED || e.getStatus() == HttpStatus.BAD_REQUEST) {
+                throw new AgentException(String.format("%s: %s", e.getStatus().getReason(), e.getMessage()));
             }
             log.error(e.getMessage());
         }

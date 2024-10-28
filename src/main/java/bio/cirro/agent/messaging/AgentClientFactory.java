@@ -37,6 +37,7 @@ public class AgentClientFactory {
     public synchronized AgentClient connect(ConnectionInfo connectionInfo,
                                             MessageHandlerFunction messageHandler) {
         var token = getToken(connectionInfo);
+        log.debug("Connecting to WebSocket endpoint at {}", connectionInfo.getWsUrl());
         var request = HttpRequest
                 .GET(connectionInfo.getWsUrl())
                 .body("")
@@ -61,7 +62,7 @@ public class AgentClientFactory {
             log.debug("Using cached JWT token");
             return jwt;
         }
-        log.debug("Fetching new JWT token");
+        log.debug("Fetching new JWT token from {}", connectionInfo.getTokenUrl());
         var request = HttpRequest
                 .POST(connectionInfo.getTokenUrl(), null)
                 .body("")

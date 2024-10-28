@@ -5,7 +5,8 @@ Cirro Agent is a daemon process that allows you to submit jobs to local compute 
 ## Running
 
 Pre-requisites:
-- Java 21 or higher
+- [Java 21 or higher](https://adoptium.net/)
+- [AWS CLI configured](#aws-configuration)
 - POSIX-compatible operating system (Linux, MacOS, WSL on Windows)
 
 Download from the [Releases](https://github.com/CirroBio/Cirro-local-agent/releases) page and run the jar file:
@@ -33,6 +34,7 @@ cirro:
     watch-interval: 2
     log-level: INFO
     jwt-secret: <RANDOM>
+    jwt-expiry: 7
 ```
 
 The following environment variables can be set to override the above configuration.
@@ -51,9 +53,11 @@ The following environment variables can be set to override the above configurati
 
 ### AWS Configuration
 
-The agent will use the standard [AWS CLI environment variables](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html) for configuration.
+The agent will use the standard [AWS CLI](https://docs.aws.amazon.com/cli/v1/userguide/cli-chap-configure.html) configuration for accessing AWS resources.
 
-You can specify the `AWS_PROFILE` environment variable to use a specific profile.
+You can also use [environment variables](https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-envvars.html), such as `AWS_PROFILE` to specify the profile to use.
+
+The easiest way to set this up is to run `aws configure` and follow the prompts.
 
 ```bash
 AWS_PROFILE="my-profile" java -jar cirro-agent-0.1-all.jar
@@ -97,7 +101,7 @@ The default lifetime of the token is 7 days to account for long-running jobs.
 
 ### Debugging
 
-Debug mode can be enabled on the application by specifying the `--debug` flag on launch or setting log level to `DEBUG`.
+Debug mode can be enabled on the application by specifying the `--debug` flag on launch or setting log level to `DEBUG` in the configuration.
 
 ## Development
 
