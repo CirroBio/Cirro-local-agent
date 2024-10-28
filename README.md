@@ -1,5 +1,7 @@
 # Cirro Agent
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=CirroBio_Cirro-local-agent&metric=alert_status&token=702d92a2776e625a3b4446454e190ad420a9d79a)](https://sonarcloud.io/summary/new_code?id=CirroBio_Cirro-local-agent)
+
 Cirro Agent is a daemon process that allows you to submit jobs to local compute resources.
 
 ## Running
