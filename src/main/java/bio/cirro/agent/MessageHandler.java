@@ -51,7 +51,7 @@ public class MessageHandler {
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
                     .projectId(runAnalysisCommandMessage.getProjectId())
                     .nativeJobId(execution.getStartOutput().localJobId())
-                    .message(execution.getStartOutput().stdout())
+                    .message(null)
                     .status(Status.PENDING)
                     .build();
         } catch (ExecutionException e) {
