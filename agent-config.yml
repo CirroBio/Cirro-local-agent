@@ -1,7 +1,7 @@
 cirro:
   agent:
     url: https://dev.cirro.bio
-    id: nathan-agent
+    id: default-agent
     log-level: DEBUG
     work-directory: work/
     watch-interval: 10
