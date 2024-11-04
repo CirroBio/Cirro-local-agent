@@ -3,8 +3,10 @@ package bio.cirro.agent.execution;
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.aws.AwsCredentials;
 import bio.cirro.agent.aws.AwsTokenClient;
+import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.dto.AnalysisUpdateMessage;
+import bio.cirro.agent.messaging.dto.StopAnalysisMessage;
 import bio.cirro.agent.models.Status;
 import bio.cirro.agent.models.UpdateStatusRequest;
 import jakarta.inject.Singleton;
@@ -12,8 +14,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sts.StsClient;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @AllArgsConstructor
 @Singleton
@@ -53,6 +58,39 @@ public class ExecutionService {
                 .details(request.details())
                 .build();
         socket.sendMessage(msg);
+    }
+
+    public void stopExecution(StopAnalysisMessage stopAnalysisMessage) {
+        var execution = executionRepository.get(stopAnalysisMessage.getDatasetId());
+
+        try {
+            Path stopScript = agentConfig.getStopScript();
+            if (!stopScript.toFile().exists()) {
+                throw new ExecutionException("Stop script not found");
+            }
+            var stopProcessBuilder = new ProcessBuilder()
+                    .directory(execution.getWorkingDirectory().toFile())
+                    .command(stopScript.toAbsolutePath().toString())
+                    .redirectErrorStream(true);
+            var env = stopProcessBuilder.environment();
+            env.put("PW_ENVIRONMENT_FILE", execution.getEnvironmentPath().toString());
+            env.put("PW_JOB_ID", execution.getStartOutput().localJobId());
+
+            var stopProcess = stopProcessBuilder.start();
+            var output = stopProcess.getInputStream().readAllBytes();
+            log.debug("Stop execution output: {}", output);
+
+            stopProcess.waitFor(10, TimeUnit.SECONDS);
+            if (stopProcess.exitValue() != 0) {
+                throw new ExecutionException("Failed to stop execution");
+            }
+            stopProcess.destroy();
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to stop execution", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ExecutionException("Thread interrupted", e);
+        }
     }
 
     public AwsCredentials generateS3Credentials(String executionId) {

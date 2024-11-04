@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +28,6 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 @Slf4j
 public class ExecutionCreateService {
-    public static final String SUBMIT_SCRIPT = "submit_headnode.sh";
     private static final Pattern JOB_ID_REGEX = Pattern.compile("^\\d+$");
 
     private final AgentConfig agentConfig;
@@ -119,14 +117,14 @@ public class ExecutionCreateService {
      */
     private ExecutionStartOutput startExecution(Execution execution) {
         try {
-            Path launchScript = Paths.get(agentConfig.getAbsoluteSharedDirectory().toString(), SUBMIT_SCRIPT);
-            if (!launchScript.toFile().exists()) {
-                throw new ExecutionException("Launch script not found", null);
+            Path submitScript = agentConfig.getSubmitScript();
+            if (!submitScript.toFile().exists()) {
+                throw new ExecutionException("Submit script not found", null);
             }
-            log.debug("Using launch script: {}", launchScript);
+            log.debug("Using submit script: {}", submitScript);
             var headnodeLaunchProcessBuilder = new ProcessBuilder()
                     .directory(execution.getWorkingDirectory().toFile())
-                    .command(launchScript.toAbsolutePath().toString())
+                    .command(submitScript.toAbsolutePath().toString())
                     .redirectErrorStream(true);
             // Set environment variables needed by the launch script
             var env = headnodeLaunchProcessBuilder.environment();
