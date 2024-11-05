@@ -1,6 +1,5 @@
 package bio.cirro.agent.execution;
 
-import bio.cirro.agent.models.Code;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
 
@@ -14,7 +13,6 @@ public record ExecutionDto(
         String workingDirectory,
         String status,
         String username,
-        Code workflowCode,
         Instant createdAt
 ) {
     @JsonProperty
@@ -29,7 +27,6 @@ public record ExecutionDto(
                 execution.getWorkingDirectory().toString(),
                 execution.getStatus().name(),
                 execution.getUsername(),
-                execution.getMessageData().getWorkflowCode(),
                 execution.getCreatedAt()
         );
     }

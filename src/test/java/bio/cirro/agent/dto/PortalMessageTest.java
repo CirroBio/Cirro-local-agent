@@ -14,7 +14,7 @@ class PortalMessageTest {
     @CsvSource(value = {
         "{};UnknownMessage",
         "{\"agentId\":\"test\", \"type\":\"register\"};AgentRegisterMessage",
-        "{\"type\":\"ack\"};AckMessage",
+        "{\"type\":\"ack\", \"extra\": \"test\"};AckMessage",
     }, delimiter = ';')
     void testMapping(String json, String expectedType) throws IOException {
         var objectMapper = ObjectMapper.getDefault();

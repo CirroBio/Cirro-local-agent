@@ -34,6 +34,8 @@ public class AgentConfig {
     private String version;
     private byte[] jwtSecret;
     private int jwtExpiryDays;
+    private String submitScriptName;
+    private String stopScriptName;
 
     @PostConstruct
     public void init() {
@@ -64,5 +66,13 @@ public class AgentConfig {
 
     public String getUserAgent() {
         return "Cirro Agent/" + version;
+    }
+
+    public Path getSubmitScript() {
+        return getAbsoluteSharedDirectory().resolve(submitScriptName);
+    }
+
+    public Path getStopScript() {
+        return getAbsoluteSharedDirectory().resolve(stopScriptName);
     }
 }

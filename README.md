@@ -37,6 +37,8 @@ cirro:
     log-level: INFO
     jwt-secret: <RANDOM>
     jwt-expiry: 7
+    submit-script-name: submit_headnode.sh
+    stop-script-name: stop_headnode.sh
 ```
 
 The following environment variables can be set to override the above configuration.
@@ -79,6 +81,8 @@ You must set up the following scripts in the shared directory:
 
 - `submit_headnode.sh` (required)
   - This script is used to submit the headnode job to the local compute resource.
+- `stop_headnode.sh` (optional)
+  - This script is used to stop the headnode job on the local compute resource.
 - `nextflow.local.config` (optional)
   - This file is used to set up the nextflow configuration for the job.
 - `cromwell.local.config` (optional)

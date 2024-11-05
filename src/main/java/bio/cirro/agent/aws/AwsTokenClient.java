@@ -6,7 +6,6 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.policybuilder.iam.IamEffect;
 import software.amazon.awssdk.policybuilder.iam.IamPolicy;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.sts.StsClient;
 
 import java.time.Duration;
@@ -56,7 +55,7 @@ public class AwsTokenClient {
         var datasetS3Path = execution.getDatasetS3Path();
         var bucketArn = Arn.builder()
                 .partition("aws")
-                .service(S3Client.SERVICE_NAME)
+                .service("s3")
                 .resource(datasetS3Path.bucket())
                 .build()
                 .toString();

@@ -2,9 +2,12 @@ package bio.cirro.agent;
 
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.execution.ExecutionCreateService;
+import bio.cirro.agent.execution.ExecutionService;
+import bio.cirro.agent.messaging.dto.AckMessage;
 import bio.cirro.agent.messaging.dto.AnalysisUpdateMessage;
 import bio.cirro.agent.messaging.dto.PortalMessage;
 import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
+import bio.cirro.agent.messaging.dto.StopAnalysisMessage;
 import bio.cirro.agent.messaging.dto.UnknownMessage;
 import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
@@ -22,11 +25,14 @@ import java.util.Optional;
 @AllArgsConstructor
 public class MessageHandler {
     private final ExecutionCreateService executionCreateService;
+    private final ExecutionService executionService;
 
     public Optional<PortalMessage> handleMessage(PortalMessage message) {
         return switch (message) {
             case RunAnalysisCommandMessage runAnalysisCommandMessage ->
                     Optional.of(handleRunAnalysisCommand(runAnalysisCommandMessage));
+            case StopAnalysisMessage stopAnalysisMessage ->
+                    Optional.of(handleStopAnalysisCommand(stopAnalysisMessage));
             case UnknownMessage unknownMessage -> {
                 log.warn("Received unknown message: {}", unknownMessage.getRawMessage());
                 yield Optional.empty();
@@ -45,7 +51,7 @@ public class MessageHandler {
                     .datasetId(runAnalysisCommandMessage.getDatasetId())
                     .projectId(runAnalysisCommandMessage.getProjectId())
                     .nativeJobId(execution.getStartOutput().localJobId())
-                    .message(execution.getStartOutput().stdout())
+                    .message(null)
                     .status(Status.PENDING)
                     .build();
         } catch (ExecutionException e) {
@@ -58,6 +64,17 @@ public class MessageHandler {
                     .message(e.getMessage())
                     .status(Status.FAILED)
                     .build();
+        }
+    }
+
+    private AckMessage handleStopAnalysisCommand(StopAnalysisMessage stopAnalysisMessage) {
+        try {
+            executionService.stopExecution(stopAnalysisMessage);
+            return new AckMessage("Analysis stopped");
+        } catch (Exception e) {
+            var message = String.format("Error stopping analysis: %s", e.getMessage());
+            log.error(message, e);
+            return new AckMessage(message);
         }
     }
 }
