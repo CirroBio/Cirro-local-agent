@@ -34,8 +34,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-import static bio.cirro.agent.execution.ExecutionCreateService.SUBMIT_SCRIPT;
-
 /**
  * Cirro Agent entry point.
  */
@@ -205,7 +203,7 @@ public class AgentCommand implements Runnable {
 
         FileUtils.validateDirectory(agentConfig.getAbsoluteWorkDirectory(), "Work");
         FileUtils.validateDirectory(agentConfig.getAbsoluteSharedDirectory(), "Shared");
-        var submitScript = agentConfig.getAbsoluteSharedDirectory().resolve(SUBMIT_SCRIPT);
+        var submitScript = agentConfig.getSubmitScript();
         if (!Files.exists(submitScript)) {
             throw new AgentException(String.format("Submit script (%s) not found", submitScript));
         }

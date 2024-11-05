@@ -62,7 +62,7 @@ public class ExecutionService {
 
     public void stopExecution(StopAnalysisMessage stopAnalysisMessage) {
         var execution = executionRepository.get(stopAnalysisMessage.getDatasetId());
-
+        log.info("Stopping execution: {}", execution.getDatasetId());
         try {
             Path stopScript = agentConfig.getStopScript();
             if (!stopScript.toFile().exists()) {
@@ -99,6 +99,7 @@ public class ExecutionService {
             throw new IllegalStateException("Execution already completed");
         }
 
+        log.debug("Generating S3 credentials for execution: {}", executionId);
         var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
         var creds = tokenClient.generateCredentialsForExecution(execution);
         return AwsCredentials.builder()
