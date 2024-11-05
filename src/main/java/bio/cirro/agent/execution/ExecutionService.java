@@ -37,6 +37,51 @@ public class ExecutionService {
 
     public void updateStatus(String executionId, UpdateStatusRequest request) {
         var execution = executionRepository.get(executionId);
+        updateStatusInternal(execution, request);
+    }
+
+    public void stopExecution(StopAnalysisMessage stopAnalysisMessage) {
+        var execution = executionRepository.get(stopAnalysisMessage.getDatasetId());
+        log.info("Stopping execution: {}", execution.getDatasetId());
+        try {
+            Path stopScript = agentConfig.getStopScript();
+            if (!stopScript.toFile().exists()) {
+                throw new ExecutionException("Stop script not found");
+            }
+            var stopProcessBuilder = new ProcessBuilder()
+                    .directory(execution.getWorkingDirectory().toFile())
+                    .command(stopScript.toAbsolutePath().toString())
+                    .redirectErrorStream(true);
+            var env = stopProcessBuilder.environment();
+            if (execution.getStartOutput() == null) {
+                throw new ExecutionException("Execution not started, cannot stop job");
+            }
+            env.put("PW_ENVIRONMENT_FILE", execution.getEnvironmentPath().toString());
+            env.put("PW_JOB_ID", execution.getStartOutput().localJobId());
+
+            var stopProcess = stopProcessBuilder.start();
+            var output = new String(stopProcess.getInputStream().readAllBytes());
+            log.debug("Stop execution output: {}", output);
+
+            stopProcess.waitFor(10, TimeUnit.SECONDS);
+            if (stopProcess.exitValue() != 0) {
+                throw new ExecutionException("Failed to stop execution");
+            }
+            stopProcess.destroy();
+            var updateRequest = UpdateStatusRequest.builder()
+                    .status(Status.FAILED)
+                    .message("Execution stopped by user")
+                    .build();
+            updateStatusInternal(execution, updateRequest);
+        } catch (IOException e) {
+            throw new ExecutionException("Failed to stop execution", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ExecutionException("Thread interrupted", e);
+        }
+    }
+
+    private void updateStatusInternal(Execution execution, UpdateStatusRequest request) {
         execution.setStatus(request.status());
         execution.setFinishOutput(new ExecutionFinishOutput(request.message()));
 
@@ -58,39 +103,6 @@ public class ExecutionService {
                 .details(request.details())
                 .build();
         socket.sendMessage(msg);
-    }
-
-    public void stopExecution(StopAnalysisMessage stopAnalysisMessage) {
-        var execution = executionRepository.get(stopAnalysisMessage.getDatasetId());
-        log.info("Stopping execution: {}", execution.getDatasetId());
-        try {
-            Path stopScript = agentConfig.getStopScript();
-            if (!stopScript.toFile().exists()) {
-                throw new ExecutionException("Stop script not found");
-            }
-            var stopProcessBuilder = new ProcessBuilder()
-                    .directory(execution.getWorkingDirectory().toFile())
-                    .command(stopScript.toAbsolutePath().toString())
-                    .redirectErrorStream(true);
-            var env = stopProcessBuilder.environment();
-            env.put("PW_ENVIRONMENT_FILE", execution.getEnvironmentPath().toString());
-            env.put("PW_JOB_ID", execution.getStartOutput().localJobId());
-
-            var stopProcess = stopProcessBuilder.start();
-            var output = stopProcess.getInputStream().readAllBytes();
-            log.debug("Stop execution output: {}", output);
-
-            stopProcess.waitFor(10, TimeUnit.SECONDS);
-            if (stopProcess.exitValue() != 0) {
-                throw new ExecutionException("Failed to stop execution");
-            }
-            stopProcess.destroy();
-        } catch (IOException e) {
-            throw new ExecutionException("Failed to stop execution", e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new ExecutionException("Thread interrupted", e);
-        }
     }
 
     public AwsCredentials generateS3Credentials(String executionId) {

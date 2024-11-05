@@ -68,7 +68,13 @@ public class MessageHandler {
     }
 
     private AckMessage handleStopAnalysisCommand(StopAnalysisMessage stopAnalysisMessage) {
-        executionService.stopExecution(stopAnalysisMessage);
-        return new AckMessage("Analysis stopped");
+        try {
+            executionService.stopExecution(stopAnalysisMessage);
+            return new AckMessage("Analysis stopped");
+        } catch (Exception e) {
+            var message = String.format("Error stopping analysis: %s", e.getMessage());
+            log.error(message, e);
+            return new AckMessage(message);
+        }
     }
 }
