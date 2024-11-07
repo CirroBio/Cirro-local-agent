@@ -20,6 +20,7 @@ import java.util.List;
 public class ExecutionController {
     private final AgentTokenService agentTokenService;
     private final ExecutionService executionService;
+    private final ExecutionTokenService executionTokenService;
 
     @Get
     public HttpResponse<List<ExecutionDto>> list() {
@@ -30,7 +31,7 @@ public class ExecutionController {
     public HttpResponse<AwsCredentials> generateS3Credentials(@PathVariable String executionId,
                                                               @Header("Authorization") String authorization) {
         agentTokenService.validate(authorization, executionId);
-        return HttpResponse.ok(executionService.generateS3Credentials(executionId));
+        return HttpResponse.ok(executionTokenService.generateS3Credentials(executionId));
     }
 
     @Put("/{executionId}/status")

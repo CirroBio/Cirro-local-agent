@@ -2,7 +2,6 @@ cirro:
   agent:
     url: https://dev.cirro.bio
     id: default-agent
-    log-level: DEBUG
+    log-level: INFO
     work-directory: work/
-    watch-interval: 10
     shared-directory: shared/
