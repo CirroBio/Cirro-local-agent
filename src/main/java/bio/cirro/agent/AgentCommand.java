@@ -12,7 +12,6 @@ import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
 import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -172,13 +171,12 @@ public class AgentCommand implements Runnable {
         catch (WebSocketClientException e) {
             var msg = e.getMessage();
             if (clientSocket == null) {
-                throw new AgentException("Failed to connect, check agent ID: " + msg);
+                throw new AgentException("Failed to connect: " + msg);
             }
             log.error(e.getMessage());
         }
         catch (HttpClientResponseException e) {
-            if (clientSocket == null && (
-                    e.getStatus() == HttpStatus.UNAUTHORIZED || e.getStatus() == HttpStatus.BAD_REQUEST)) {
+            if (clientSocket == null) {
                 throw new AgentException(String.format("%s: %s", e.getStatus().getReason(), e.getMessage()));
             }
             log.error(e.getMessage());
