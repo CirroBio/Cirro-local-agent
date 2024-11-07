@@ -12,7 +12,6 @@ import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
 import io.micronaut.http.HttpRequest;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -144,8 +143,8 @@ public class AgentCommand implements Runnable {
      * Initialize the connection to the server if it is not already open
      */
     private void watchAndInitConnection() {
+        var clientSocket = agentClientFactory.getClientSocket();
         try {
-            var clientSocket = agentClientFactory.getClientSocket();
             if (clientSocket == null || !clientSocket.isOpen()) {
                 var connectionInfo = ConnectionInfo.builder()
                         .baseUrl(agentConfig.getUrl())
@@ -166,17 +165,18 @@ public class AgentCommand implements Runnable {
                                 .build()
                 );
             }
-        } catch (WebSocketClientException e) {
+        }
+        // Only throw an exception if the first attempt to connect has failed
+        // (clientSocket will be null) Exceptions will cause the agent to exit
+        catch (WebSocketClientException e) {
             var msg = e.getMessage();
-            if (msg.contains(HttpStatus.BAD_REQUEST.getReason())) {
-                throw new AgentException("Bad Request: invalid connection info, check agent ID");
-            }
-            if (msg.contains(HttpStatus.UNAUTHORIZED.getReason())) {
-                throw new AgentException("Unauthorized: check JWT");
+            if (clientSocket == null) {
+                throw new AgentException("Failed to connect: " + msg);
             }
             log.error(e.getMessage());
-        } catch (HttpClientResponseException e) {
-            if (e.getStatus() == HttpStatus.UNAUTHORIZED || e.getStatus() == HttpStatus.BAD_REQUEST) {
+        }
+        catch (HttpClientResponseException e) {
+            if (clientSocket == null) {
                 throw new AgentException(String.format("%s: %s", e.getStatus().getReason(), e.getMessage()));
             }
             log.error(e.getMessage());
