@@ -1,8 +1,6 @@
 package bio.cirro.agent.execution;
 
 import bio.cirro.agent.AgentConfig;
-import bio.cirro.agent.aws.AwsCredentials;
-import bio.cirro.agent.aws.AwsTokenClient;
 import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.dto.AnalysisUpdateMessage;
@@ -12,7 +10,6 @@ import bio.cirro.agent.models.UpdateStatusRequest;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import software.amazon.awssdk.services.sts.StsClient;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 public class ExecutionService {
     private final ExecutionRepository executionRepository;
     private final AgentConfig agentConfig;
-    private final StsClient stsClient;
     private final AgentClientFactory agentClientFactory;
 
     public List<ExecutionDto> list() {
@@ -103,22 +99,5 @@ public class ExecutionService {
                 .details(request.details())
                 .build();
         socket.sendMessage(msg);
-    }
-
-    public AwsCredentials generateS3Credentials(String executionId) {
-        var execution = executionRepository.get(executionId);
-        if (execution.getStatus() == Status.COMPLETED) {
-            throw new IllegalStateException("Execution already completed");
-        }
-
-        log.debug("Generating S3 credentials for execution: {}", executionId);
-        var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
-        var creds = tokenClient.generateCredentialsForExecution(execution);
-        return AwsCredentials.builder()
-                .accessKeyId(creds.accessKeyId())
-                .secretAccessKey(creds.secretAccessKey())
-                .sessionToken(creds.sessionToken())
-                .expiration(creds.expirationTime().orElse(null))
-                .build();
     }
 }

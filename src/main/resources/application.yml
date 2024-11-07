@@ -3,7 +3,7 @@ cirro:
     url: https://app.cirro.bio
     id: default-agent
     heartbeat-interval: 60
-    watch-interval: 2
+    watch-interval: 10
     log-level: INFO
     work-directory: work/
     version: '@BUILD_VERSION@'
