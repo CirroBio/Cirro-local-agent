@@ -103,6 +103,7 @@ public class Execution {
         environment.put("AWS_PROFILE", "default");
         environment.put("AWS_REGION", getMessageData().getRegion());
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
+        environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsFilePath().toString());
         // Escape all values
         environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
         return Map.copyOf(environment);
@@ -110,6 +111,10 @@ public class Execution {
 
     public Path getAwsConfigPath() {
         return getWorkingDirectory().resolve("aws.config");
+    }
+
+    public Path getAwsCredentialsFilePath() {
+        return getWorkingDirectory().resolve("aws.credentials");
     }
 
     public Path getCredentialsHelperPath() {

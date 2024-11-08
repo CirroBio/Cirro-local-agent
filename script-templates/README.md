@@ -4,7 +4,7 @@ The `submit_headnode.sh` script is responsible for starting the headnode contain
 
 At a minimum the script should start the headnode container with the following options:
 - Bind the `PW_PROJECT_DIR` and `PW_SHARED_DIR` (read only) directories.
-- Load the environment variables from the `${PW_ENVIRONMENT_FILE}` file.
+- Load the environment variables from the `PW_ENVIRONMENT_FILE` file.
 - Set `PW_WORKING_DIR` as the working directory.
 
 ### Environment Variables

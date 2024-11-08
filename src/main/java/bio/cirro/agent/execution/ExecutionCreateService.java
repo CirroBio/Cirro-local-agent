@@ -57,7 +57,7 @@ public class ExecutionCreateService {
             Files.createDirectories(execution.getWorkingDirectory());
             writeEnvironment(execution, token);
             writeAwsConfig(execution);
-
+            log.info("Starting execution {} from {}", execution.getDatasetId(), execution.getUsername());
             var executionOutput = startExecution(execution);
             execution.setStartOutput(executionOutput);
         } catch (Exception ex) {
