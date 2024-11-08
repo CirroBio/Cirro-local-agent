@@ -24,10 +24,12 @@ jobs:
     - name: Run build with Gradle Wrapper
       run: |
         export BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
-        ./gradlew shadowJar
+        ./gradlew shadowJar cyclonedxBom
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: agent-jar
         path: build/libs/*.jar
+        name: agent-bom
+        path: build/reports/CycloneDX-Sbom.*
