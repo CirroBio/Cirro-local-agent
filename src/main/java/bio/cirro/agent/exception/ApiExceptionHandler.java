@@ -29,6 +29,8 @@ public class ApiExceptionHandler implements ExceptionHandler<RuntimeException, H
         };
         if (status == HttpStatus.INTERNAL_SERVER_ERROR) {
             log.error("Unhandled exception", exception);
+        } else {
+            log.info("Error in API request: {}", exception.getMessage());
         }
         return HttpResponse.status(status).body(new ErrorMessage(exception.getMessage()));
     }
