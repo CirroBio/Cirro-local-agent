@@ -63,6 +63,13 @@ You can also use [environment variables](https://docs.aws.amazon.com/cli/v1/user
 
 The easiest way to set this up is to run `aws configure` and follow the prompts.
 
+The IAM principal associated with the AWS CLI configuration must have the following permissions:
+
+- `execute-api:Invoke` on `arn:aws:execute-api:<REGION>:<CIRRO_ACCOUNT_ID>:*`
+- `sts:AssumeRole` on `arn:aws:iam::<PROJECT_ACCOUNT_ID>:role/Cirro-LocalAgentRole-*`
+
+A sample policy is available at [agent-policy.json](./agent-policy.json).
+
 ```bash
 AWS_PROFILE="my-profile" java -jar cirro-agent-0.1-all.jar
 ```
