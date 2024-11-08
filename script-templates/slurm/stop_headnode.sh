@@ -1,4 +1,4 @@
 #!/bin/bash
 set -euo pipefail
 
-scancel "${PW_JOB_ID}"
+scancel -f --signal=TERM "${PW_JOB_ID}"
