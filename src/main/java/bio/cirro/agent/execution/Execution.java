@@ -95,6 +95,7 @@ public class Execution {
         environment.put("PW_WORKING_DIR", getWorkingDirectory().toString());
         environment.put("PW_SHARED_DIR", getAgentSharedDirectory().toString());
         environment.put("PW_ENVIRONMENT_FILE", getEnvironmentPath().toString());
+        environment.put("PW_USERNAME", getUsername());
         // Write variables needed to call AWS credentials service
         environment.put("AGENT_TOKEN", token);
         environment.put("AGENT_ENDPOINT", agentEndpoint);
@@ -102,7 +103,6 @@ public class Execution {
         environment.put("AWS_PROFILE", "default");
         environment.put("AWS_REGION", getMessageData().getRegion());
         environment.put("AWS_CONFIG_FILE", getAwsConfigPath().toString());
-        environment.put("AWS_SHARED_CREDENTIALS_FILE", getAwsCredentialsPath().toString());
         // Escape all values
         environment.replaceAll((k, v) -> StringEscapeUtils.escapeXSI(v));
         return Map.copyOf(environment);
@@ -110,10 +110,6 @@ public class Execution {
 
     public Path getAwsConfigPath() {
         return getWorkingDirectory().resolve("aws.config");
-    }
-
-    public Path getAwsCredentialsPath() {
-        return getWorkingDirectory().resolve("aws.credentials");
     }
 
     public Path getCredentialsHelperPath() {
