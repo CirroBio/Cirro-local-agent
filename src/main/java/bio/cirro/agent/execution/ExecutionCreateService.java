@@ -6,7 +6,6 @@ import bio.cirro.agent.exception.ExecutionException;
 import bio.cirro.agent.messaging.dto.RunAnalysisCommandMessage;
 import bio.cirro.agent.models.Status;
 import bio.cirro.agent.utils.FileUtils;
-import io.micronaut.runtime.server.EmbeddedServer;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,6 @@ public class ExecutionCreateService {
     private final AgentConfig agentConfig;
     private final AgentTokenService agentTokenService;
     private final ExecutionRepository executionRepository;
-    private final EmbeddedServer embeddedServer;
 
     /**
      * Create and start an execution
@@ -71,7 +69,7 @@ public class ExecutionCreateService {
      * Write environment variables to a file
      */
     private void writeEnvironment(Execution execution, String token) {
-        var agentEndpoint = embeddedServer.getURI().toString();
+        var agentEndpoint = agentConfig.getEndpoint();
         var environmentVariables = execution.getEnvironment(token, agentEndpoint);
 
         var environmentSb = new StringBuilder();

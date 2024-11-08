@@ -2,6 +2,7 @@ cirro:
   agent:
     url: https://app.cirro.bio
     id: default-agent
+    endpoint: http://localhost:8080
     heartbeat-interval: 60
     watch-interval: 10
     log-level: INFO

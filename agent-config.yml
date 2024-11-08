@@ -1,11 +1,8 @@
-micronaut:
-  server: 
-    host: hostname
-
 cirro:
   agent:
     url: https://dev.cirro.bio
-    id: default-agent
+    endpoint: http://rhino01:8080
+    id: nathan-agent
     log-level: INFO
     work-directory: work/
     shared-directory: shared/
