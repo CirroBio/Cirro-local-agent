@@ -50,9 +50,11 @@ jobs:
       with:
         context: .
         push: true
+        build-args:
+          BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
         tags: |
           ghcr.io/cirrobio/cirro-local-agent:latest
-          ghcr.io/cirrobio/cirro-local-agent:${{ env.GITHUB_REF_NAME }}
+          ghcr.io/cirrobio/cirro-local-agent:${{ env.BUILD_VERSION }}
         labels: |
           org.opencontainers.image.title=cirro-agent
           org.opencontainers.image.description=Cirro Agent
