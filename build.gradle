@@ -119,7 +119,7 @@ graalvmNative {
     binaries {
         main {
             imageName.set('cirro-agent')
-            buildArgs.add('--verbose --march=compatibility')
+            buildArgs.add('--verbose -march=compatibility')
         }
     }
 }

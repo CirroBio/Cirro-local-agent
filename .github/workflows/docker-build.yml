@@ -49,8 +49,6 @@ jobs:
 
     - name: Push to GitHub Container Registry
       run: |
-        export BUILD_VERSION=$(date +'%Y%m%d')-${GITHUB_REF_NAME}
-        docker tag cirro-agent ghcr.io/cirrobio/cirro-agent:${BUILD_VERSION}
         docker tag cirro-agent ghcr.io/cirrobio/cirro-agent:${GITHUB_REF_NAME}
         docker tag cirro-agent ghcr.io/cirrobio/cirro-agent:${GITHUB_SHA::7}
         docker tag cirro-agent ghcr.io/cirrobio/cirro-agent:latest
