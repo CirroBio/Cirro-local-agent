@@ -28,7 +28,7 @@ docker run \
   -e CIRRO_AGENT_ID="default-agent" \
   -v "${PWD}/work:/work" \
   -v "${PWD}/shared:/shared" \
-  ghcr.io/cirrobio/cirro-local-agent:latest
+  ghcr.io/cirrobio/cirro-agent:latest
 ```
 
 You can also configure it by mapping the `agent-config.yml` file to the container `-v "${PWD}/agent-config.yml:/agent-config.yml"`.

@@ -28,14 +28,14 @@ processResources {
 tasks.named("dockerfileNative") {
     instruction """
 ENV BUILD_VERSION=${buildVersion}
-LABEL org.opencontainers.image.source = "https://github.com/CirroBio/Cirro-local-agent"
-LABEL org.opencontainers.image.vendor = "Cirro Bio"
-LABEL org.opencontainers.image.authors = "Cirro Bio"
-LABEL org.opencontainers.image.version = "${buildVersion}"
-LABEL org.opencontainers.image.title = "Cirro Agent"
-LABEL org.opencontainers.image.description = "Cirro Agent"
-LABEL org.opencontainers.image.url = "https://github.com/CirroBio/Cirro-local-agent"
-LABEL org.opencontainers.image.created = "${Instant.now().toString()}"
+LABEL org.opencontainers.image.source "https://github.com/CirroBio/Cirro-local-agent"
+LABEL org.opencontainers.image.vendor "Cirro Bio"
+LABEL org.opencontainers.image.authors "Cirro Bio"
+LABEL org.opencontainers.image.version "${buildVersion}"
+LABEL org.opencontainers.image.title "Cirro Agent"
+LABEL org.opencontainers.image.description "Cirro Agent is a daemon that runs on a local HPC environment."
+LABEL org.opencontainers.image.url "https://github.com/CirroBio/Cirro-local-agent"
+LABEL org.opencontainers.image.created "${Instant.now().toString()}"
     """
 }
 
