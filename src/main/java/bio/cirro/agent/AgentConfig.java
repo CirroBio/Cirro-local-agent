@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 @Singleton
 public class AgentConfig {
     private String url;
+    private String endpoint;
     private String id;
     private int heartbeatInterval;
     private int watchInterval;

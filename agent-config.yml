@@ -1,10 +1,7 @@
-micronaut:
-  server: 
-    host: hostname
-
 cirro:
   agent:
     url: https://dev.cirro.bio
+    endpoint: http://localhost:8080
     id: default-agent
     log-level: INFO
     work-directory: work/
