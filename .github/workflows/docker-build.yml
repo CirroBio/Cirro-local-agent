@@ -36,26 +36,20 @@ jobs:
     - name: Run build with Gradle Wrapper
       run: |
         export BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
-        ./gradlew nativeCompile
+        ./gradlew dockerBuildNative
 
     - name: Log in to the Container registry
-      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Push image
-      uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-      with:
-        context: .
-        push: true
-        build-args: |
-          BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
-        tags: |
-          ghcr.io/cirrobio/cirro-local-agent:latest
-#           ghcr.io/cirrobio/cirro-local-agent:${{ env.BUILD_VERSION }}
-        labels: |
-          org.opencontainers.image.title=cirro-agent
-          org.opencontainers.image.description=Cirro Agent
-          org.opencontainers.image.url=https://github.com/CirroBio/Cirro-local-agent
+    - name: Push to GitHub Container Registry
+      run: |
+        export BUILD_VERSION=$(date +'%Y%m%d')-${GITHUB_REF_NAME}
+        docker tag cirro-agent ghcr.io/cirrobio/cirro-local-agent:${BUILD_VERSION}
+        docker tag cirro-agent ghcr.io/cirrobio/cirro-local-agent:${GITHUB_REF_NAME}
+        docker tag cirro-agent ghcr.io/cirrobio/cirro-local-agent:${GITHUB_SHA::7}
+        docker tag cirro-agent ghcr.io/cirrobio/cirro-local-agent:latest
+        docker push --all-tags ghcr.io/cirrobio/cirro-local-agent
