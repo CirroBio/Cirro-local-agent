@@ -51,8 +51,8 @@ jobs:
         context: .
         push: true
         tags: |
-          ghcr.io/CirroBio/cirro-agent:latest
-          ghcr.io/CirroBio/cirro-agent:${{ env.GITHUB_REF_NAME }}
+          ghcr.io/cirrobio/cirro-agent:latest
+          ghcr.io/cirrobio/cirro-agent:${{ env.GITHUB_REF_NAME }}
         labels: |
           org.opencontainers.image.title=cirro-agent
           org.opencontainers.image.description=Cirro Agent
