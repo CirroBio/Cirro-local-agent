@@ -50,7 +50,7 @@ jobs:
       with:
         context: .
         push: true
-        build-args:
+        build-args: |
           BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
         tags: |
           ghcr.io/cirrobio/cirro-local-agent:latest
