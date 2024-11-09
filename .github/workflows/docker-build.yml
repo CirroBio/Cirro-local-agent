@@ -35,7 +35,7 @@ jobs:
     - name: Run build with Gradle Wrapper
       run: |
         export BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
-        ./gradlew nativeCompile
+        ./gradlew shadowJar
 
     - name: Log in to the Container registry
       uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
