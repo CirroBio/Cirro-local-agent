@@ -2,7 +2,7 @@ cirro:
   agent:
     url: https://dev.cirro.bio
     endpoint: http://localhost:8080
-    id: nathan-agent
+    id: default-agent
     log-level: INFO
     work-directory: work/
     shared-directory: shared/
