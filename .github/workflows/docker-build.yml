@@ -54,7 +54,7 @@ jobs:
           BUILD_VERSION=$(date +'%Y%m%d')-$GITHUB_REF_NAME
         tags: |
           ghcr.io/cirrobio/cirro-local-agent:latest
-          ghcr.io/cirrobio/cirro-local-agent:${{ env.BUILD_VERSION }}
+#           ghcr.io/cirrobio/cirro-local-agent:${{ env.BUILD_VERSION }}
         labels: |
           org.opencontainers.image.title=cirro-agent
           org.opencontainers.image.description=Cirro Agent
