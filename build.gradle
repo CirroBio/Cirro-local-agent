@@ -16,10 +16,27 @@ repositories {
 def buildVersion = System.getenv("BUILD_VERSION") ?: "edge"
 
 import org.apache.tools.ant.filters.ReplaceTokens
+
+import java.time.Instant
+
 processResources {
     filter ReplaceTokens, tokens: [
             "BUILD_VERSION": buildVersion
     ]
+}
+
+tasks.named("dockerfileNative") {
+    instruction """
+ENV BUILD_VERSION=${buildVersion}
+LABEL org.opencontainers.image.source = "https://github.com/CirroBio/Cirro-local-agent"
+LABEL org.opencontainers.image.vendor = "Cirro Bio"
+LABEL org.opencontainers.image.authors = "Cirro Bio"
+LABEL org.opencontainers.image.version = "${buildVersion}"
+LABEL org.opencontainers.image.title = "Cirro Agent"
+LABEL org.opencontainers.image.description = "Cirro Agent"
+LABEL org.opencontainers.image.url = "https://github.com/CirroBio/Cirro-local-agent"
+LABEL org.opencontainers.image.created = "${Instant.now().toString()}"
+    """
 }
 
 cyclonedxBom {

@@ -8,14 +8,30 @@ Cirro Agent is a daemon process that allows you to submit jobs to local compute 
 
 Pre-requisites:
 - [Java 21 or higher](https://adoptium.net/)
-- [AWS CLI configured](#aws-configuration)
-- POSIX-compatible operating system (Linux, MacOS, WSL on Windows)
+- [AWS profile configured](#aws-configuration)
+- POSIX-compatible operating system (Linux, macOS, WSL on Windows)
 
 Download from the [Releases](https://github.com/CirroBio/Cirro-local-agent/releases) page and run the jar file:
 
-```
+```bash
 java -jar cirro-agent-0.1-all.jar
 ```
+
+Or, run the agent in a Docker container:
+
+```bash
+docker run \
+  -e AWS_ACCESS_KEY_ID="<ACCESS_KEY>" \
+  -e AWS_SECRET_ACCESS_KEY="<SECRET_KEY>" \
+  -e AWS_REGION="<REGION>" \
+  -e CIRRO_AGENT_URL="https://app.cirro.bio/api" \
+  -e CIRRO_AGENT_ID="default-agent" \
+  -v "${PWD}/work:/work" \
+  -v "${PWD}/shared:/shared" \
+  ghcr.io/cirrobio/cirro-local-agent:latest
+```
+
+You can also configure it by mapping the `agent-config.yml` file to the container `-v "${PWD}/agent-config.yml:/agent-config.yml"`.
 
 ## Configuration and Arguments
 
@@ -70,14 +86,11 @@ The IAM principal associated with the AWS CLI configuration must have the follow
 
 A sample policy is available at [agent-policy.json](./agent-policy.json).
 
-```bash
-AWS_PROFILE="my-profile" java -jar cirro-agent-0.1-all.jar
-```
-
 ### Directory and Scripts Setup
 
 The agent requires a base directory to store working files and logs for workflows that are run.
 By default, the agent will use the `work/` directory in the current working directory.
+Projects will be separated by subdirectories within this directory.
 
 The agent also requires a shared directory for storing shared files, such as scripts.
 By default, the agent will use the `shared/` directory in the current working directory.
@@ -88,14 +101,14 @@ You must set up the following scripts in the shared directory:
 
 - `submit_headnode.sh` (required)
   - This script is used to submit the headnode job to the local compute resource.
-- `stop_headnode.sh` (optional)
+- `stop_headnode.sh` (required)
   - This script is used to stop the headnode job on the local compute resource.
 - `nextflow.local.config` (optional)
   - This file is used to set up the nextflow configuration for the job.
 - `cromwell.local.config` (optional)
   - This file is used to set up the cromwell configuration for the job.
 
-Depending on your environment, you may also need supplementary scripts to support the above scripts.
+Depending on your environment, you may also need scripts to supplement the above scripts.
 
 We've included examples in the [`script-templates/`](./script-templates) directory for various runtime environments.
 
@@ -107,10 +120,11 @@ Files kept in here will be used to take advantage of workflow call caching for N
 ### Agent Security
 
 The jobs run by the agent communicate back through an HTTP server exposed by the agent.
-The default is running on `http://localhost:8080`.
+The default endpoint is exposed at `http://localhost:8080`.
 It is recommended to run the agent behind a reverse proxy with HTTPS enabled.
-Each job is authenticated using a unique JWT token signed by the agent.
-The default lifetime of the token is 7 days to account for long-running jobs. 
+
+Each job is authenticated to this endpoint using a unique JWT token signed by the agent.
+The default lifetime of the token is 7 days to account for long-running jobs.
 
 ### Debugging
 
@@ -120,14 +134,14 @@ Debug mode can be enabled on the application by specifying the `--debug` flag on
 
 Run the agent using IntelliJ IDEA or run through the built jar file:
 
-```
+```bash
 ./gradlew shadowJar
 java -jar build/libs/cirro-agent-0.1-all.jar
 ```
 
 You can also build & run through the native executable:
 
-```
+```bash
 ./gradlew nativeCompile
 ./build/native/nativeCompile/cirro-agent
 ```
