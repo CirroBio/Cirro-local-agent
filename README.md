@@ -29,6 +29,7 @@ cirro:
   agent:
     url: https://app.cirro.bio/api
     id: default-agent
+    endpoint: http://localhost:8080
     work-directory: work/
     shared-directory: shared/
     # Advanced options
@@ -47,6 +48,7 @@ The following environment variables can be set to override the above configurati
 |--------------------------------|--------------------------------------|-------------------------------------------|
 | CIRRO_AGENT_URL                | Cirro instance URL                   | https://app.cirro.bio                     |
 | CIRRO_AGENT_ID                 | Agent ID                             | default-agent                             |
+| CIRRO_AGENT_ENDPOINT           | Agent endpoint URL                   | http://localhost:8080                     |
 | CIRRO_AGENT_WORK_DIRECTORY     | Working directory for jobs           | work/                                     |
 | CIRRO_AGENT_SHARED_DIRECTORY   | Shared directory for jobs            | shared/                                   |
 | CIRRO_AGENT_HEARTBEAT_INTERVAL | Heartbeat interval in seconds        | 60                                        |
@@ -111,6 +113,8 @@ The default is running on `http://localhost:8080`.
 It is recommended to run the agent behind a reverse proxy with HTTPS enabled.
 Each job is authenticated using a unique JWT token signed by the agent.
 The default lifetime of the token is 7 days to account for long-running jobs. 
+
+When running behind a reverse proxy, change the endpoint configuration property to the public URL of the agent.
 
 ### Debugging
 
