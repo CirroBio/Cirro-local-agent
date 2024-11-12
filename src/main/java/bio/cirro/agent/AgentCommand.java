@@ -14,6 +14,7 @@ import io.micronaut.context.env.Environment;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.exceptions.HttpClientException;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.logging.LogLevel;
 import io.micronaut.logging.LoggingSystem;
@@ -175,9 +176,13 @@ public class AgentCommand implements Runnable {
             }
             log.error(e.getMessage());
         }
-        catch (HttpClientResponseException e) {
+        catch (HttpClientException e) {
             if (clientSocket == null) {
-                throw new AgentException(String.format("%s: %s", e.getStatus().getReason(), e.getMessage()));
+                var status = "Error";
+                if (e instanceof HttpClientResponseException responseException) {
+                    status = responseException.getStatus().getReason();
+                }
+                throw new AgentException(String.format("%s: %s", status, e.getMessage()));
             }
             log.error(e.getMessage());
         }
