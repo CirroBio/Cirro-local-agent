@@ -24,8 +24,9 @@ docker run \
   -e AWS_ACCESS_KEY_ID="<ACCESS_KEY>" \
   -e AWS_SECRET_ACCESS_KEY="<SECRET_KEY>" \
   -e AWS_REGION="<REGION>" \
-  -e CIRRO_AGENT_URL="https://app.cirro.bio/api" \
+  -e CIRRO_AGENT_URL="https://app.cirro.bio" \
   -e CIRRO_AGENT_ID="default-agent" \
+  -e CIRRO_AGENT_ENDPOINT="http://servername:8080" \
   -v "${PWD}/work:/work" \
   -v "${PWD}/shared:/shared" \
   ghcr.io/cirrobio/cirro-agent:latest
@@ -43,7 +44,7 @@ The config file exposes the following options:
 ```yml
 cirro:
   agent:
-    url: https://app.cirro.bio/api
+    url: https://app.cirro.bio
     id: default-agent
     endpoint: http://localhost:8080
     work-directory: work/
