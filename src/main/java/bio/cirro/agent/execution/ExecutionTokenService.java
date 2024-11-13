@@ -3,13 +3,14 @@ package bio.cirro.agent.execution;
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.aws.AwsCredentials;
 import bio.cirro.agent.aws.AwsTokenClient;
-import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sts.StsClient;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
@@ -29,7 +30,15 @@ public class ExecutionTokenService {
 
     public AwsCredentials generateS3Credentials(String executionId) {
         var execution = executionRepository.get(executionId);
-        if (execution.getStatus() == Status.COMPLETED) {
+
+        // Don't let the credentials be generated if the execution is already completed
+        // but allow a grace period to allow for the execution to clean up
+        // finishedAt will not be set unless the execution has completed or failed.
+        var isAfterThreshold = Optional.ofNullable(execution.getFinishedAt())
+                .map(finished -> finished.plus(Duration.ofMinutes(1)))
+                .map(threshold ->threshold.isBefore(Instant.now()))
+                .orElse(false);
+        if (isAfterThreshold) {
             throw new IllegalStateException("Execution already completed");
         }
 
@@ -43,7 +52,7 @@ public class ExecutionTokenService {
         }
 
         log.debug("Generating S3 credentials for execution: {}", executionId);
-        var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
+        var tokenClient = createTokenClient(execution);
         var creds = tokenClient.generateCredentialsForExecution(execution);
         var credsResponse = AwsCredentials.builder()
                 .accessKeyId(creds.accessKeyId())
@@ -53,5 +62,9 @@ public class ExecutionTokenService {
                 .build();
         executionCredentialsCache.put(executionId, credsResponse);
         return credsResponse;
+    }
+
+    protected AwsTokenClient createTokenClient(Execution execution) {
+        return new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
     }
 }
