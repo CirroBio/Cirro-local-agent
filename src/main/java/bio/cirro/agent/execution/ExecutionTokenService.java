@@ -36,7 +36,7 @@ public class ExecutionTokenService {
         // finishedAt will not be set unless the execution has completed or failed.
         var isAfterThreshold = Optional.ofNullable(execution.getFinishedAt())
                 .map(finished -> finished.plus(Duration.ofMinutes(1)))
-                .map(threshold ->threshold.isAfter(Instant.now()))
+                .map(threshold ->threshold.isBefore(Instant.now()))
                 .orElse(false);
         if (isAfterThreshold) {
             throw new IllegalStateException("Execution already completed");
