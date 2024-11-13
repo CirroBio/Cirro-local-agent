@@ -17,7 +17,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-public class ExecutionTokenServiceTest {
+class ExecutionTokenServiceTest {
     private static final String MOCK_ID = "test";
     ExecutionTokenService executionTokenService;
     Execution mockExecution;
