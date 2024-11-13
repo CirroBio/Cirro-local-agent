@@ -32,6 +32,7 @@ public class Execution {
     private Status status;
     private ExecutionStartOutput startOutput;
     private ExecutionFinishOutput finishOutput;
+    private Instant finishedAt;
 
     public String getDatasetId() {
         return messageData.getDatasetId();

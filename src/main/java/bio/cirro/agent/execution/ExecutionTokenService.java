@@ -3,13 +3,14 @@ package bio.cirro.agent.execution;
 import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.aws.AwsCredentials;
 import bio.cirro.agent.aws.AwsTokenClient;
-import bio.cirro.agent.models.Status;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.services.sts.StsClient;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
@@ -29,7 +30,15 @@ public class ExecutionTokenService {
 
     public AwsCredentials generateS3Credentials(String executionId) {
         var execution = executionRepository.get(executionId);
-        if (execution.getStatus() == Status.COMPLETED) {
+
+        // Don't let the credentials be generated if the execution is already completed
+        // but allow a grace period to allow for the execution to clean up
+        // finishedAt will not be set unless the execution has completed or failed.
+        var isAfterThreshold = Optional.ofNullable(execution.getFinishedAt())
+                .map(finished -> finished.plus(Duration.ofMinutes(1)))
+                .map(threshold ->threshold.isAfter(Instant.now()))
+                .orElse(false);
+        if (isAfterThreshold) {
             throw new IllegalStateException("Execution already completed");
         }
 
