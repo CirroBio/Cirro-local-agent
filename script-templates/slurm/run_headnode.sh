@@ -54,11 +54,10 @@ apptainer run \
     --env-file "${PW_ENVIRONMENT_FILE}" \
     --pwd "${PW_WORKING_DIR}" \
     --workdir "${TMPDIR}" \
-    --bind "${TMPDIR}/.nextflow":"$HOME/.nextflow" \
+    --env NXF_HOME="${PW_PROJECT_DIR}/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
     --bind /app/software/Apptainer \
     --bind /etc/slurm \
-    --bind /etc/passwd \
     --bind /usr/bin/scancel \
     --bind /usr/bin/sbatch \
     --bind /usr/bin/squeue \
