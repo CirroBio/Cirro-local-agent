@@ -52,7 +52,7 @@ public class ExecutionTokenService {
         }
 
         log.debug("Generating S3 credentials for execution: {}", executionId);
-        var tokenClient = new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
+        var tokenClient = createTokenClient(execution);
         var creds = tokenClient.generateCredentialsForExecution(execution);
         var credsResponse = AwsCredentials.builder()
                 .accessKeyId(creds.accessKeyId())
@@ -62,5 +62,9 @@ public class ExecutionTokenService {
                 .build();
         executionCredentialsCache.put(executionId, credsResponse);
         return credsResponse;
+    }
+
+    protected AwsTokenClient createTokenClient(Execution execution) {
+        return new AwsTokenClient(stsClient, execution.getFileAccessRoleArn(), agentConfig.getId());
     }
 }
