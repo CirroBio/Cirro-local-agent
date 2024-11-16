@@ -54,6 +54,7 @@ apptainer run \
     --pwd "${PW_WORKING_DIR}" \
     --workdir "${TMPDIR}" \
     --env NXF_HOME="${PW_PROJECT_DIR}/.nextflow" \
+    --env NXF_CACHE_DIR="${PW_PROJECT_DIR}/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
     --bind /app/software/Apptainer \
     --bind /etc/slurm \
