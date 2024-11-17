@@ -135,6 +135,20 @@ When running behind a reverse proxy, change the endpoint configuration property 
 
 Debug mode can be enabled on the application by specifying the `--debug` flag on launch or setting log level to `DEBUG` in the configuration.
 
+### Logging
+
+The agent logs to the console (stdout) by default.
+
+You can also override the default log configuration by providing a custom Logback configuration file and specifying the `logger.config` property in your configuration.
+
+```
+logger:
+  config: logback-override.xml
+```
+
+A sample Logback configuration file that writes to both the console and a log file is available at [logback-override.xml](./logback-override.xml).
+The log file is configured to write to `agent.log`, rotate daily, and keep 7 days of logs.
+
 ## Development
 
 Run the agent using IntelliJ IDEA or run through the built jar file:

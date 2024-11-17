@@ -48,7 +48,6 @@ mkdir -p "${TMPDIR}/.nextflow"
 
 # Run the headnode image
 apptainer run \
-    --fakeroot \
     --containall \
     --bind "${PW_PROJECT_DIR}" \
     --env-file "${PW_ENVIRONMENT_FILE}" \
@@ -56,6 +55,7 @@ apptainer run \
     --workdir "${TMPDIR}" \
     --env NXF_HOME="${PW_PROJECT_DIR}/.nextflow" \
     --bind "${PW_SHARED_DIR}:${PW_SHARED_DIR}:ro" \
+    --bind "${HOME}/.apptainer" \
     --bind /app/software/Apptainer \
     --bind /etc/slurm \
     --bind /usr/bin/scancel \
