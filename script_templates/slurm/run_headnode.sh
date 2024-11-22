@@ -8,6 +8,9 @@ set -euo pipefail
 # - PW_PROJECT_DIR: The unique identifier for the project
 # - PW_HEADNODE_IMAGE: The image to pull
 
+# Load the LMOD module
+source /app/lmod/lmod/init/profile
+
 # Source the environment variables for this analysis
 source "${PW_ENVIRONMENT_FILE}"
 
