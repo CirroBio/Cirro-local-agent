@@ -33,5 +33,6 @@ sbatch \
     --cpus-per-task="${HEADNODE_CPUS:-4}" \
     --mem="${HEADNODE_MEM:-8G}" \
     --priority="${HEADNODE_PRIORITY:-10}" \
+    --export=PW_ENVIRONMENT_FILE \
     --parsable \
     "${PW_SHARED_DIR}/run_headnode.sh"
