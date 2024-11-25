@@ -32,7 +32,8 @@ export SLURM_CONF=${PW_SHARED_DIR}/slurm.conf
 export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib64:/usr/lib/x86_64-linux-gnu/
 EOF
 
-# Load the apptainer dependency
+# Load dependencies
+ml awscli
 ml Apptainer/1.1.6
 
 # Set the apptainer environment variables within the image
