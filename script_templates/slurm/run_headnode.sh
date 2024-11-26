@@ -1,4 +1,9 @@
 #!/bin/bash
+# Load the LMOD module
+set -e
+source /app/lmod/lmod/init/profile
+
+# Set error handling
 set -euo pipefail
 
 # Required Environment Variables:
@@ -8,8 +13,6 @@ set -euo pipefail
 # - PW_PROJECT_DIR: The unique identifier for the project
 # - PW_HEADNODE_IMAGE: The image to pull
 
-# Load the LMOD module
-source /app/lmod/lmod/init/profile
 
 # Source the environment variables for this analysis
 source "${PW_ENVIRONMENT_FILE}"
@@ -29,7 +32,8 @@ export SLURM_CONF=${PW_SHARED_DIR}/slurm.conf
 export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib64:/usr/lib/x86_64-linux-gnu/
 EOF
 
-# Load the apptainer dependency
+# Load dependencies
+ml awscli
 ml Apptainer/1.1.6
 
 # Set the apptainer environment variables within the image
