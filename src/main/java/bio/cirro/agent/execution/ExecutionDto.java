@@ -13,11 +13,13 @@ public record ExecutionDto(
         String workingDirectory,
         String status,
         String username,
-        Instant createdAt
+        Instant createdAt,
+        Instant finishedAt
 ) {
     @JsonProperty
     public long getElapsedTimeSeconds() {
-        return Duration.between(createdAt, Instant.now()).getSeconds();
+        var compareTime = finishedAt != null ? finishedAt : Instant.now();
+        return Duration.between(createdAt, compareTime).getSeconds();
     }
 
     public static ExecutionDto from(Execution execution) {
@@ -27,7 +29,8 @@ public record ExecutionDto(
                 execution.getWorkingDirectory().toString(),
                 execution.getStatus().name(),
                 execution.getUsername(),
-                execution.getCreatedAt()
+                execution.getCreatedAt(),
+                execution.getFinishedAt()
         );
     }
 }
