@@ -28,6 +28,7 @@ cat <<EOF >> "${PW_ENVIRONMENT_FILE}"
 export APPTAINER_CACHEDIR="${PW_PROJECT_DIR}/apptainer"
 export PW_ONDEMAND_JOB_QUEUE="campus-new"
 export PW_SPOT_JOB_QUEUE="campus-new"
+export SLURM_CONF=${PW_SHARED_DIR}/slurm.conf
 export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/lib64:/usr/lib/x86_64-linux-gnu/
 EOF
 
