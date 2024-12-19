@@ -62,7 +62,7 @@ public class ExecutionService {
 
             stopProcess.waitFor(10, TimeUnit.SECONDS);
             if (stopProcess.exitValue() != 0) {
-                throw new ExecutionException("Failed to stop execution. Output: " + output);
+                log.error("Failed to stop execution. Output: {}", output);
             }
             stopProcess.destroy();
             var updateRequest = UpdateStatusRequest.builder()
