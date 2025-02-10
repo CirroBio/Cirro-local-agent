@@ -35,6 +35,7 @@ public class AgentConfig {
     private String version;
     private byte[] jwtSecret;
     private int jwtExpiryDays;
+    private int cleanupThreshold;
     private String submitScriptName;
     private String stopScriptName;
 
@@ -54,6 +55,10 @@ public class AgentConfig {
 
     public Duration heartbeatInterval() {
         return Duration.ofSeconds(heartbeatInterval);
+    }
+
+    public Duration cleanupThresholdDays() {
+        return Duration.ofDays(cleanupThreshold);
     }
 
     private Path getAbsolutePath(String directory) {

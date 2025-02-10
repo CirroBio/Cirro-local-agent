@@ -55,6 +55,7 @@ cirro:
     log-level: INFO
     jwt-secret: <RANDOM>
     jwt-expiry: 7
+    cleanup-threshold: 7
     submit-script-name: submit_headnode.sh
     stop-script-name: stop_headnode.sh
 ```
@@ -73,6 +74,7 @@ The following environment variables can be set to override the above configurati
 | CIRRO_AGENT_LOG_LEVEL          | Log level (DEBUG, INFO, WARN, ERROR) | INFO                                      |
 | CIRRO_AGENT_JWT_SECRET         | JWT secret for signing               | Random value generated upon agent startup |
 | CIRRO_AGENT_JWT_EXPIRY         | JWT expiry in days                   | 7                                         |
+| CIRRO_AGENT_CLEANUP_THRESHOLD  | Execution cleanup threshold in days  | 7                                         |
 
 ### AWS Configuration
 
@@ -134,7 +136,7 @@ When running behind a reverse proxy, change the endpoint configuration property 
 ### Agent Persistence
 
 By default, the agent will store its execution state in memory. 
-If the agent is restarted, it will lose all running job information.
+If the agent is restarted, it will lose all running execution information.
 To persist the agent state across restarts, you can configure to use a file-based database.
 
 To enable persistence, add the following configuration to the `agent-config.yml` file:
@@ -149,6 +151,8 @@ datasources:
 This will create a file in the working directory called `cirro-agent.mv.db`.
 The first time the agent is started with this configuration, it will create the database schema. 
 After that, you can change the `schema-generate` property to `NONE`.
+
+Completed executions will be removed from the database after the configured `cleanup-threshold` days.
 
 ### Debugging
 

@@ -12,6 +12,7 @@ cirro:
     jwt-expiry-days: 7
     submit-script-name: submit_headnode.sh
     stop-script-name: stop_headnode.sh
+    cleanup-threshold: 7
 micronaut:
   http:
     client:
