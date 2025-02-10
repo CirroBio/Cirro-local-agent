@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -40,13 +39,7 @@ public class ExecutionCreateService {
      * @return the created execution
      */
     public Execution create(RunAnalysisCommandMessage runAnalysisCommandMessage) {
-        var execution = Execution.builder()
-                .messageData(runAnalysisCommandMessage)
-                .agentWorkingDirectory(agentConfig.getAbsoluteWorkDirectory())
-                .agentSharedDirectory(agentConfig.getAbsoluteSharedDirectory())
-                .status(Status.PENDING)
-                .createdAt(Instant.now())
-                .build();
+        var execution = executionRepository.getNew(runAnalysisCommandMessage);
         executionRepository.add(execution);
 
         var token = agentTokenService.generateForExecution(execution.getDatasetId());
@@ -62,6 +55,7 @@ public class ExecutionCreateService {
             execution.setStatus(Status.FAILED);
             throw new ExecutionException("Failed to start execution", ex);
         }
+        executionRepository.update(execution);
         return execution;
     }
 

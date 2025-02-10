@@ -1,6 +1,7 @@
 package bio.cirro.agent;
 
 import bio.cirro.agent.exception.AgentException;
+import bio.cirro.agent.execution.ExecutionCleanupService;
 import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.ConnectionInfo;
 import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
@@ -51,6 +52,7 @@ public class AgentCommand implements Runnable {
     private final HttpClient httpClient;
     private final TaskScheduler taskScheduler;
     private final MessageHandler messageHandler;
+    private final ExecutionCleanupService executionCleanupService;
     private final AgentConfig agentConfig;
     private final LoggingSystem loggingSystem;
 
@@ -117,7 +119,7 @@ public class AgentCommand implements Runnable {
             // Schedule connection watcher and heartbeat tasks
             var watcher = taskScheduler.scheduleAtFixedRate(Duration.ZERO, agentConfig.watchInterval(), this::watchAndInitConnection);
             taskScheduler.scheduleAtFixedRate(agentConfig.heartbeatInterval(), agentConfig.heartbeatInterval(), this::sendHeartbeat);
-
+            taskScheduler.scheduleAtFixedRate(Duration.ofSeconds(1), Duration.ofDays(1), executionCleanupService::cleanupOldExecutions);
             // Wait for the watcher task to complete (it only completes when an exception is thrown)
             watcher.get();
         } catch (InterruptedException e) {

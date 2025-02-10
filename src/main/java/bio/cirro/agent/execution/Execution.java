@@ -27,8 +27,6 @@ public class Execution {
     private final Path agentSharedDirectory;
     private final RunAnalysisCommandMessage messageData;
     private final Instant createdAt;
-
-    // State
     private Status status;
     private ExecutionStartOutput startOutput;
     private ExecutionFinishOutput finishOutput;
