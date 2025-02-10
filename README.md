@@ -131,6 +131,25 @@ The default lifetime of the token is 7 days to account for long-running jobs.
 
 When running behind a reverse proxy, change the endpoint configuration property to the public URL of the agent.
 
+### Agent Persistence
+
+By default, the agent will store its execution state in memory. 
+If the agent is restarted, it will lose all running job information.
+To persist the agent state across restarts, you can configure to use a file-based database.
+
+To enable persistence, add the following configuration to the `agent-config.yml` file:
+
+```yml
+datasources:
+  default:
+    url: "jdbc:h2:file:./cirro-agent;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
+    schema-generate: CREATE
+```
+
+This will create a file in the working directory called `cirro-agent.mv.db`.
+The first time the agent is started with this configuration, it will create the database schema. 
+After that, you can change the `schema-generate` property to `NONE`.
+
 ### Debugging
 
 Debug mode can be enabled on the application by specifying the `--debug` flag on launch or setting log level to `DEBUG` in the configuration.
