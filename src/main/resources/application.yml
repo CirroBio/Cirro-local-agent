@@ -12,7 +12,16 @@ cirro:
     jwt-expiry-days: 7
     submit-script-name: submit_headnode.sh
     stop-script-name: stop_headnode.sh
+    cleanup-threshold: 7
 micronaut:
   http:
     client:
       read-timeout: 15s
+datasources:
+  default:
+    url: "jdbc:h2:mem:;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE"
+    driverClassName: "org.h2.Driver"
+    username: "sa"
+    password: ""
+    dialect: H2
+    schema-generate: CREATE

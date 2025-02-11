@@ -27,7 +27,8 @@ public class ExecutionService {
     private final AgentClientFactory agentClientFactory;
 
     public List<ExecutionDto> list() {
-        return executionRepository.getAll().stream()
+        var executions = executionRepository.getAll();
+        return executions.stream()
                 .map(ExecutionDto::from)
                 .toList();
     }
@@ -85,6 +86,7 @@ public class ExecutionService {
             execution.setFinishedAt(Instant.now());
             execution.setFinishOutput(new ExecutionFinishOutput(request.message()));
         }
+        executionRepository.update(execution);
 
         var socket = agentClientFactory.getClientSocket();
         if (!socket.isOpen()) {
