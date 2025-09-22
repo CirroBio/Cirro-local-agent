@@ -1,10 +1,14 @@
 package bio.cirro.agent.messaging;
 
+import bio.cirro.agent.AgentConfig;
 import bio.cirro.agent.aws.AwsRequestSigner;
+import bio.cirro.agent.exception.AgentException;
+import bio.cirro.agent.models.SystemInfoResponse;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.websocket.WebSocketClient;
 import jakarta.inject.Singleton;
@@ -52,6 +56,25 @@ public class AgentClientFactory {
         client.setMessageHandler(messageHandler);
         clientSocket = client;
         return client;
+    }
+
+    public ConnectionInfo buildConnectionInfo(AgentConfig agentConfig) {
+        var url = agentConfig.getUrl() + "/api/info/system";
+        log.debug("Connecting to Cirro at {}", url);
+        var request = HttpRequest.GET(url)
+                .header("User-Agent", agentConfig.getUserAgent())
+                .accept(MediaType.APPLICATION_JSON);
+        var response = httpClient.toBlocking().retrieve(request, SystemInfoResponse.class);
+        if (response.agentEndpoint() == null || response.agentEndpoint().isBlank()) {
+            throw new AgentException("Invalid Cirro server response");
+        }
+        return ConnectionInfo.builder()
+                .baseUrl(agentConfig.getUrl())
+                .tokenBaseUrl(response.agentEndpoint())
+                .region(response.region())
+                .agentId(agentConfig.getId())
+                .userAgent(agentConfig.getUserAgent())
+                .build();
     }
 
     /**

@@ -6,14 +6,11 @@ import bio.cirro.agent.messaging.AgentClientFactory;
 import bio.cirro.agent.messaging.ConnectionInfo;
 import bio.cirro.agent.messaging.dto.AgentRegisterMessage;
 import bio.cirro.agent.messaging.dto.HeartbeatMessage;
-import bio.cirro.agent.models.SystemInfoResponse;
 import bio.cirro.agent.utils.FileUtils;
 import bio.cirro.agent.utils.SystemUtils;
 import io.micronaut.configuration.picocli.MicronautFactory;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.env.Environment;
-import io.micronaut.http.HttpRequest;
-import io.micronaut.http.MediaType;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.exceptions.HttpClientException;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
@@ -60,7 +57,7 @@ public class AgentCommand implements Runnable {
     boolean debugEnabled;
 
     // Internal state
-    private SystemInfoResponse systemInfo;
+    private ConnectionInfo connectionInfo;
 
     public static void main(String[] args) {
         int exitCode = execute(args);
@@ -107,7 +104,7 @@ public class AgentCommand implements Runnable {
         try {
             setLogLevel();
             validateParams();
-            systemInfo = connectCirro();
+            connectionInfo = agentClientFactory.buildConnectionInfo(agentConfig);
 
             applicationContext
                     .findBean(EmbeddedServer.class)
@@ -149,13 +146,6 @@ public class AgentCommand implements Runnable {
         var clientSocket = agentClientFactory.getClientSocket();
         try {
             if (clientSocket == null || !clientSocket.isOpen()) {
-                var connectionInfo = ConnectionInfo.builder()
-                        .baseUrl(agentConfig.getUrl())
-                        .tokenBaseUrl(systemInfo.agentEndpoint())
-                        .region(systemInfo.region())
-                        .agentId(agentConfig.getId())
-                        .userAgent(agentConfig.getUserAgent())
-                        .build();
                 clientSocket = agentClientFactory.connect(connectionInfo, messageHandler::handleMessage);
                 var versionString = String.format("Cirro Agent (%s) on %s", agentConfig.getVersion(), SystemUtils.getJavaVersion());
                 clientSocket.sendMessage(
@@ -214,19 +204,6 @@ public class AgentCommand implements Runnable {
         if (!Files.exists(submitScript)) {
             throw new AgentException(String.format("Submit script (%s) not found", submitScript));
         }
-    }
-
-    private SystemInfoResponse connectCirro() {
-        var url = agentConfig.getUrl() + "/api/info/system";
-        log.debug("Connecting to Cirro at {}", url);
-        var request = HttpRequest.GET(url)
-                .header("User-Agent", agentConfig.getUserAgent())
-                .accept(MediaType.APPLICATION_JSON);
-        var response = httpClient.toBlocking().retrieve(request, SystemInfoResponse.class);
-        if (response.agentEndpoint() == null || response.agentEndpoint().isBlank()) {
-            throw new AgentException("Invalid Cirro server response");
-        }
-        return response;
     }
 
     /**
