@@ -3,7 +3,7 @@ plugins {
     id "org.sonarqube" version "6.3.1.5724"
     id "com.github.johnrengelman.shadow" version "8.1.1"
     id "io.micronaut.application" version "${micronautPluginVersion}"
-    id "org.cyclonedx.bom" version "2.4.1"
+    id "org.cyclonedx.bom" version "3.1.0"
 }
 
 version = "0.1"
@@ -39,14 +39,9 @@ LABEL org.opencontainers.image.created "${Instant.now().toString()}"
     """
 }
 
-cyclonedxBom {
+tasks.cyclonedxDirectBom {
     includeConfigs = ["runtimeClasspath"]
     skipConfigs = ["compileClasspath", "testCompileClasspath"]
-    projectType = "application"
-    schemaVersion = "1.4"
-    destination = file("build/reports")
-    outputName = "CycloneDX-Sbom"
-    outputFormat = "all"
     includeBomSerialNumber = true
     componentVersion = "2.0.0"
 }
