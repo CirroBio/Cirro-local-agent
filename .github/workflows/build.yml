@@ -38,4 +38,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: agent-bom
-        path: build/reports/CycloneDX-Sbom.*
+        path: build/reports/cyclonedx-direct/bom.*
