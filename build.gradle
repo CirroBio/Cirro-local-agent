@@ -59,10 +59,6 @@ test {
     useJUnitPlatform()
 }
 
-configurations.all {
-    resolutionStrategy.force "com.fasterxml.jackson.core:jackson-core:2.21.1"
-}
-
 dependencies {
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
@@ -124,7 +120,8 @@ graalvmNative {
     binaries {
         main {
             imageName.set("cirro-agent")
-            buildArgs.add("--verbose -march=compatibility")
+            buildArgs.add("--verbose")
+            buildArgs.add("-march=compatibility")
         }
     }
 }
