@@ -1,7 +1,7 @@
 plugins {
     id "jacoco"
-    id "org.sonarqube" version "6.3.1.5724"
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "org.sonarqube" version "7.3.0.8198"
+    id "com.gradleup.shadow" version "9.4.1"
     id "io.micronaut.application" version "${micronautPluginVersion}"
     id "org.cyclonedx.bom" version "3.1.0"
 }
@@ -108,8 +108,8 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.toVersion("21")
-    targetCompatibility = JavaVersion.toVersion("21")
+    sourceCompatibility = JavaVersion.toVersion("25")
+    targetCompatibility = JavaVersion.toVersion("25")
 }
 
 micronaut {
